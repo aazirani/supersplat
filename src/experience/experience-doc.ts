@@ -94,7 +94,7 @@ const readLayerPose = (v: unknown): LayerPose | null => {
     const s = readVec3(scale);
     const r =
         Array.isArray(rotation) && rotation.length === 4 && rotation.every(x => typeof x === 'number') ?
-            [rotation[0], rotation[1], rotation[2], rotation[3]] :
+            [rotation[0], rotation[1], rotation[2], rotation[3]] as [number, number, number, number] :
             null;
     return p && r && s ? { position: p, rotation: r, scale: s } : null;
 };

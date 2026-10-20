@@ -41,7 +41,13 @@ export default [
         // The experience's pure modules are run unbundled by node --test, so their relative
         // imports carry the .ts extension (rewriteRelativeImportExtensions rewrites them for
         // the bundle).
-        files: ['src/experience/**/*.ts'],
+        files: [
+            'src/experience/types.ts',
+            'src/experience/screen-fit.ts',
+            'src/experience/experience-settings.ts',
+            'src/experience/experience-doc.ts',
+            'src/experience/experience-ops.ts'
+        ],
         rules: {
             'import/extensions': ['error', 'ignorePackages', { '.ts': 'always' }]
         }

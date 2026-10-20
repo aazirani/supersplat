@@ -82,7 +82,7 @@ const layerEntries = (experience: Experience, layer: number): { annotations: unk
     const videos = experience.screens
     .filter(s => s.layer === layer)
     .map(s => ({
-        src: mediaFileName(s) ?? s.source.url,
+        src: mediaFileName(s) ?? (s.source as { url: string }).url,
         corners: s.corners,
         offset: s.offset,
         loop: s.loop,
