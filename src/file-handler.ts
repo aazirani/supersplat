@@ -696,6 +696,8 @@ const initFileHandler = (scene: Scene, events: Events, dropTarget: HTMLElement) 
         }
         // an experience that cannot be composed is refused with its problems listed
         if (exportType === 'experience') {
+            // "show only this room" hides the other rooms, which the checks would refuse
+            events.fire('experiencePanel.endShowOnly');
             const problems = events.invoke('experience.exportProblems') as string[];
             if (problems.length > 0) {
                 await events.invoke('showPopup', {

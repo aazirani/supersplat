@@ -642,11 +642,12 @@ class ExperiencePanel extends Container {
         };
 
         showOnlyToggle.on('change', () => {
-            if (roomSelection.uid === null) {
-                return;
-            }
             const splats = events.invoke('scene.allSplats') as { uid: number, visible: boolean }[];
             if (showOnlyToggle.value && !showOnly) {
+                if (roomSelection.uid === null) {
+                    showOnlyToggle.value = false;
+                    return;
+                }
                 showOnly = true;
                 savedVisibility.clear();
                 for (const splat of splats) {
@@ -664,6 +665,22 @@ class ExperiencePanel extends Container {
                     }
                 }
             }
+        });
+
+        // the hidden layers come back whenever the panel stops showing this room: closed,
+        // another room picked, the scene cleared or an export about to check visibility
+        const endShowOnly = () => {
+            if (showOnly) {
+                showOnlyToggle.value = false;
+            }
+        };
+
+        events.on('experiencePanel.endShowOnly', endShowOnly);
+
+        events.on('scene.clear', () => {
+            showOnly = false;
+            savedVisibility.clear();
+            showOnlyToggle.value = false;
         });
 
         addDoorButton.on('click', () => {
@@ -885,6 +902,9 @@ class ExperiencePanel extends Container {
                     if (e.target instanceof Node && (isRoomToggle.dom.contains(e.target) || idInput.dom.contains(e.target) || firstToggle.dom.contains(e.target))) {
                         return;
                     }
+                    if (roomSelection.uid !== layer.uid) {
+                        endShowOnly();
+                    }
                     roomSelection.uid = layer.uid;
                     updateRoomFields();
                     rebuildRoomsList();
@@ -967,6 +987,9 @@ class ExperiencePanel extends Container {
         const setVisible = (visible: boolean) => {
             if (visible === !this.hidden) {
                 return;
+            }
+            if (!visible) {
+                endShowOnly();
             }
             this.hidden = !visible;
             events.fire('experiencePanel.visible', visible);
