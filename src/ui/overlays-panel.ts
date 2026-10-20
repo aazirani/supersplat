@@ -376,6 +376,12 @@ class OverlaysPanel extends Container {
             }
         });
 
+        events.on('experiencePanel.visible', (visible: boolean) => {
+            if (visible) {
+                setVisible(false);
+            }
+        });
+
         resetButton.on('click', () => {
             events.fire('preferences.reset', 'overlays');
         });

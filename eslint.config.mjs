@@ -1,7 +1,21 @@
 import playcanvasConfig from '@playcanvas/eslint-config';
 import tsPlugin from '@typescript-eslint/eslint-plugin';
 import tsParser from '@typescript-eslint/parser';
+import { SourceCode } from 'eslint';
 import globals from 'globals';
+
+// eslint-plugin-import (pinned by @playcanvas/eslint-config 2.x) still calls the
+// SourceCode token helpers that ESLint 10 removed; without them any import/order
+// fix crashes the lint run. Polyfill the two it uses so the rule reports instead.
+const sourceCodeProto = SourceCode.prototype;
+if (!sourceCodeProto.getTokenOrCommentAfter) {
+    sourceCodeProto.getTokenOrCommentAfter = function (nodeOrToken) {
+        return this.getTokenAfter(nodeOrToken, { includeComments: true });
+    };
+    sourceCodeProto.getTokenOrCommentBefore = function (nodeOrToken) {
+        return this.getTokenBefore(nodeOrToken, { includeComments: true });
+    };
+}
 
 export default [
     ...playcanvasConfig,

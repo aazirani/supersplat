@@ -3,6 +3,7 @@ import { Mat4 } from 'playcanvas';
 
 import { AppearancePanel } from './appearance-panel';
 import { DataPanel } from './data-panel';
+import { ExperiencePanel } from './experience-panel';
 import { Events } from '../events';
 import { ExportSettings } from '../export-settings';
 import type { BlobReadSource } from '../io';
@@ -110,6 +111,7 @@ class EditorUI {
         const settingsPanel = new SettingsPanel(events, tooltips);
         const appearancePanel = new AppearancePanel(events, tooltips);
         const overlaysPanel = new OverlaysPanel(events, tooltips);
+        const experiencePanel = new ExperiencePanel(events, tooltips);
         const bottomToolbar = new BottomToolbar(events, tooltips);
         const rightToolbar = new RightToolbar(events, tooltips);
         const menu = new Menu(events);
@@ -134,6 +136,7 @@ class EditorUI {
         canvasContainer.append(settingsPanel);
         canvasContainer.append(appearancePanel);
         canvasContainer.append(overlaysPanel);
+        canvasContainer.append(experiencePanel);
 
         // view axes container
         const viewCube = new ViewCube(events);

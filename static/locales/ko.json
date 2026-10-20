@@ -393,5 +393,19 @@
     "popup.shortcuts.remove-tool-point": "선택한 측정/정렬 점 제거",
     "popup.shortcuts.stamp-key": "키를 현재 카메라 포즈로 덮어쓰기",
     "popup.shortcuts.copy-key": "키 복사본 드래그",
-    "panel.overlays.experience": "Experience"
+    "panel.overlays.experience": "Experience",
+    "panel.experience": "Experience",
+    "panel.experience.annotations": "Annotations",
+    "panel.experience.screens": "Screens",
+    "panel.experience.rooms": "Rooms",
+    "panel.experience.add": "Add",
+    "panel.experience.remove": "Remove",
+    "panel.experience.title": "Title",
+    "panel.experience.text": "Text",
+    "panel.experience.links-hint": "Links: [label](https://…) or a bare url",
+    "panel.experience.set-camera": "Set camera from view",
+    "panel.experience.move-point": "Move point",
+    "panel.experience.moved-warning": "The layer moved after this point was picked",
+    "panel.experience.layer": "Layer",
+    "tool.experience.place-hint": "Click a point on a splat to place the annotation"
 }
