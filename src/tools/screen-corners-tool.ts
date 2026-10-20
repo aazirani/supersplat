@@ -52,7 +52,7 @@ class ScreenCornersTool {
 
         const updateHint = () => {
             hintLabel.text = i18n.t('tool.experience.corners-hint', {
-                n: picked.length,
+                n: Math.min(picked.length + 1, 4),
                 corner: i18n.t(CORNER_KEYS[Math.min(picked.length, 3)])
             });
         };
