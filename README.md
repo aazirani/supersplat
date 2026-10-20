@@ -46,6 +46,48 @@ To initialize a local development environment for SuperSplat, ensure you have [N
 
 When changes to the source are detected, SuperSplat is rebuilt automatically. Simply refresh your browser to see your changes.
 
+## Museum Authoring
+
+The Experience panel (the map-pin button on the right toolbar) authors everything the forked
+[SuperSplat viewer](../supersplat-viewer) can play, so a published experience needs no hand-edited
+`settings.json`:
+
+- **Annotations** — a point picked on a splat, a title, text (links are written as
+  `[label](https://…)` or a bare url) and the camera framing the viewer flies to.
+- **Video screens** — a rectangle picked from four corners on a scanned screen, with a video
+  file or url and its sound settings.
+- **Rooms and doors** — one splat layer per room, with door boxes (translate/scale gizmo),
+  labels, preload radius and the arrival pose captured in the destination room.
+
+Everything is saved inside the `.ssproj` (picked videos are embedded as `media/<screen id>.<ext>`)
+with undo/redo, and shown in the viewport as an overlay (Overlays → Experience).
+
+**File → Export → Experience (.zip)** composes one settings file per room, validates each with
+the viewer's `validateSettings`, and writes the forked viewer next to the content:
+
+```
+index.html  index.js  index.css  settings.json  scene.sog   (the first room / the page)
+rooms/<id>/scene.sog  rooms/<id>/settings.json             (each other room)
+media/<screen id>.<ext>                                     (picked video files)
+```
+
+Unzip and serve the folder; the experience opens in the forked viewer, and `?room=<id>` starts
+in another room. Doors without an arrival pose, rooms without a destination and screens without
+a source are listed and refused until fixed. The plain single-file Viewer HTML export stays as
+it is and is refused while the scene has rooms or screens.
+
+The viewer is the sibling checkout `../supersplat-viewer` (branch `feature/museum-integration`),
+installed as the `@playcanvas/supersplat-viewer` file dependency.
+
+### Running the Tests
+
+The experience's pure modules (settings composition, the document round trip, edit operations,
+the screen fit) run under Node's built-in test runner, importing the `.ts` sources directly:
+
+```sh
+npm test
+```
+
 ## Localizing the SuperSplat Editor
 
 The currently supported languages are available here:
