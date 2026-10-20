@@ -2,6 +2,7 @@
 // authoring side of the Experience panel's Screens section.
 
 import { Container, Label } from '@playcanvas/pcui';
+import { Vec3 } from 'playcanvas';
 
 import { Events } from '../events';
 import { addScreen } from '../experience/experience-ops';
@@ -41,9 +42,11 @@ class ScreenCornersTool {
         let picked: Vec3T[] = [];
         let layer = -1;
 
+        const dotPoint = new Vec3();
         overlay.provider = (writer: OverlayWriter) => {
             for (const point of picked) {
-                writer.dot(point);
+                dotPoint.set(point[0], point[1], point[2]);
+                writer.dot(dotPoint);
             }
         };
 

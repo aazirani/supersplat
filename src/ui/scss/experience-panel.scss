@@ -27,7 +27,7 @@
             }
 
             .experience-list-row-warning {
-                color: $clr-warning;
+                color: $error;
             }
 
             .experience-list-row-label {
@@ -38,7 +38,7 @@
             }
 
             .experience-list-row-layer {
-                color: $clr-secondary;
+                color: $text-secondary;
                 font-size: 11px;
                 overflow: hidden;
                 text-overflow: ellipsis;
@@ -63,7 +63,7 @@
 
         .experience-hint {
             padding: 2px 10px 6px;
-            color: $clr-secondary;
+            color: $text-secondary;
             font-size: 10px;
         }
     }

@@ -76,6 +76,9 @@ class DoorBoxTool {
             rotate: false,
             uniformScale: false,
             lowerBoundScale: new Vec3(0.05, 0.05, 0.05),
+            onTransformStart: () => {
+                // the drag itself is one experience.edit pushed by onTransformEnd
+            },
             onTransform: (mode) => {
                 if (mode === 'scale') {
                     // snapshot the live scale vector before the length setters mutate it
@@ -89,6 +92,9 @@ class DoorBoxTool {
             },
             onTransformEnd: () => {
                 commit();
+            },
+            onModeChanged: () => {
+                // the door box has no rotation mode to reflect in any ui
             }
         });
 
