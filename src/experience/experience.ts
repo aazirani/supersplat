@@ -8,7 +8,7 @@ import { Events } from '../events';
 import { Scene } from '../scene';
 import type { Splat } from '../splat';
 import { deserializeExperience, serializeExperience } from './experience-doc';
-import { find, removeLayer } from './experience-ops';
+import { find, keepLayers, removeLayer } from './experience-ops';
 import { exportProblems } from './experience-settings';
 import { emptyExperience, type Experience, type LayerInfo, type LayerPose } from './types';
 
@@ -70,6 +70,8 @@ const registerExperienceEvents = (events: Events, scene: Scene) => {
         const restore = (snapshot: Experience) => {
             // a clone, so the live store and the op's snapshot are never the same object
             store = structuredClone(snapshot);
+            // the snapshot may predate a layer deletion, which is not itself undoable
+            keepLayers(store, layers().map(layer => layer.uid));
             changed();
         };
         events.fire('edit.add', new ExperienceEditOp(name, before, after, restore), true);

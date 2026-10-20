@@ -115,6 +115,23 @@ const removeLayer = (e: Experience, layer: number): void => {
     if (e.firstRoom === layer) e.firstRoom = null;
 };
 
+// removeLayer for every layer not in the scene: an undo or redo restores a whole snapshot,
+// which can still hold content on layers deleted since it was taken
+const keepLayers = (e: Experience, layers: number[]): void => {
+    const present = new Set(layers);
+    const layersInUse = [
+        ...e.annotations.map(a => a.layer),
+        ...e.screens.map(s => s.layer),
+        ...e.rooms.flatMap(room => [room.layer, ...room.doors.map(door => door.to)]),
+        ...(e.firstRoom === null ? [] : [e.firstRoom])
+    ];
+    for (const layer of new Set(layersInUse)) {
+        if (layer !== -1 && !present.has(layer)) {
+            removeLayer(e, layer);
+        }
+    }
+};
+
 const find = (
     e: Experience,
     kind: 'annotation' | 'screen' | 'door',
@@ -133,4 +150,4 @@ const layerPoseChanged = (a: LayerPose, b: LayerPose, epsilon = 1e-4): boolean =
     a.rotation.some((v, i) => Math.abs(v - b.rotation[i]) > epsilon) ||
     a.scale.some((v, i) => Math.abs(v - b.scale[i]) > epsilon);
 
-export { addAnnotation, addDoor, addScreen, find, layerPoseChanged, removeItem, removeLayer, setRoom, slugify, uniqueRoomId };
+export { addAnnotation, addDoor, addScreen, find, keepLayers, layerPoseChanged, removeItem, removeLayer, setRoom, slugify, uniqueRoomId };

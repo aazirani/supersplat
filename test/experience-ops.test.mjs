@@ -6,6 +6,7 @@ import {
     addDoor,
     addScreen,
     find,
+    keepLayers,
     layerPoseChanged,
     removeItem,
     removeLayer,
@@ -171,6 +172,38 @@ describe('removeLayer', () => {
         assert.deepEqual(e.rooms.map((r) => r.id), ['tunnel']);
         assert.equal(e.rooms[0].doors.length, 0);
         assert.equal(e.firstRoom, null);
+    });
+});
+
+describe('keepLayers', () => {
+    // an undo restores a whole snapshot, which can still hold layers deleted since
+    it('drops everything on layers no longer in the scene, like removeLayer for each', () => {
+        const e = emptyExperience();
+        setRoom(e, 1, true, 'Hall');
+        setRoom(e, 2, true, 'Tunnel');
+        addAnnotation(e, { layer: 1, position: [0, 0, 0], camera: { position: [0, 0, 1], target: [0, 0, 0], fov: 60 }, layerPose: layerPose() });
+        addAnnotation(e, { layer: 2, position: [0, 0, 0], camera: { position: [0, 0, 1], target: [0, 0, 0], fov: 60 }, layerPose: layerPose() });
+        addScreen(e, { layer: 1, corners: [[0, 0, 0], [1, 0, 0], [1, 1, 0], [0, 1, 0]], layerPose: layerPose() });
+        e.rooms[1].doors.push({ id: 'd1', to: 1, label: '', center: [0, 0, 0], size: [1, 2, 1], preloadRadius: 8, arrival: null });
+        e.rooms[1].doors.push({ id: 'd2', to: -1, label: '', center: [0, 0, 0], size: [1, 2, 1], preloadRadius: 8, arrival: null });
+        e.firstRoom = 1;
+
+        keepLayers(e, [2, 3]);
+        assert.deepEqual(e.annotations.map((a) => a.layer), [2]);
+        assert.equal(e.screens.length, 0);
+        assert.deepEqual(e.rooms.map((r) => r.id), ['tunnel']);
+        assert.deepEqual(e.rooms[0].doors.map((d) => d.id), ['d2']);
+        assert.equal(e.firstRoom, null);
+    });
+
+    it('leaves an experience whose layers all exist untouched', () => {
+        const e = emptyExperience();
+        setRoom(e, 1, true, 'Hall');
+        addAnnotation(e, { layer: 1, position: [0, 0, 0], camera: { position: [0, 0, 1], target: [0, 0, 0], fov: 60 }, layerPose: layerPose() });
+        e.firstRoom = 1;
+        const before = structuredClone(e);
+        keepLayers(e, [1]);
+        assert.deepEqual(e, before);
     });
 });
 
