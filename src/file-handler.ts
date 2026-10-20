@@ -4,6 +4,7 @@ import type { Pose } from './camera-poses';
 import { CreateDropHandler, resolveHandleFiles } from './drop-handler';
 import { ElementType } from './element';
 import { Events } from './events';
+import { exportExperience } from './export-experience';
 import { buildExportOptions, ExportChoices, ExportDialogResult, ExportType, SceneExportOptions } from './export-options';
 import { ExportSettings, loadExportSettings, saveExportSettings } from './export-settings';
 import { BlobReadSource, BrowserFileSystem, MappedReadFileSystem, pickWriteTarget, sourcesOf, WriteTarget } from './io';
@@ -16,7 +17,7 @@ import { i18n } from './ui/localization';
 // ts compiler and vscode find this type, but eslint does not
 type FilePickerAcceptType = unknown;
 
-type FileType = 'ply' | 'compressedPly' | 'splat' | 'sog' | 'spz' | 'htmlViewer' | 'packageViewer';
+type FileType = 'ply' | 'compressedPly' | 'splat' | 'sog' | 'spz' | 'htmlViewer' | 'packageViewer' | 'experience';
 
 const filePickerTypes: { [key: string]: FilePickerAcceptType } = {
     'ply': {
@@ -648,9 +649,10 @@ const initFileHandler = (scene: Scene, events: Events, dropTarget: HTMLElement) 
 
         const fileType: FileType =
             (exportType === 'viewer') ? (options.viewerExportSettings!.type === 'zip' ? 'packageViewer' : 'htmlViewer') :
-                (exportType === 'ply') ? (options.compressedPly ? 'compressedPly' : 'ply') :
-                    (exportType === 'sog') ? 'sog' :
-                        (exportType === 'spz') ? 'spz' : 'splat';
+                (exportType === 'experience') ? 'experience' :
+                    (exportType === 'ply') ? (options.compressedPly ? 'compressedPly' : 'ply') :
+                        (exportType === 'sog') ? 'sog' :
+                            (exportType === 'spz') ? 'spz' : 'splat';
 
         if (!fileTarget) {
             return await events.invoke('scene.write', fileType, options) as boolean;
@@ -689,6 +691,29 @@ const initFileHandler = (scene: Scene, events: Events, dropTarget: HTMLElement) 
         if (exporting) return;
         exporting = true;
         try {
+            // the single-file viewer export cannot carry rooms or screens: refuse it before
+            // the dialog opens, pointing at the experience export
+            if (exportType === 'viewer' && events.invoke('experience.hasRoomsOrScreens')) {
+                await events.invoke('showPopup', {
+                    type: 'error',
+                    header: i18n.t('popup.error'),
+                    message: i18n.t('popup.export.experience-only')
+                });
+                return;
+            }
+            // an experience that cannot be composed is refused with its problems listed
+            if (exportType === 'experience') {
+                const problems = events.invoke('experience.exportProblems') as string[];
+                if (problems.length > 0) {
+                    await events.invoke('showPopup', {
+                        type: 'error',
+                        header: i18n.t('popup.export.experience-problems'),
+                        message: problems.join('\n')
+                    });
+                    return;
+                }
+            }
+
             const splats = getSplats();
             const hasFilePicker = !!window.showDirectoryPicker;
 
@@ -733,7 +758,7 @@ const initFileHandler = (scene: Scene, events: Events, dropTarget: HTMLElement) 
 
     events.function('scene.write', async (fileType: FileType, options: SceneExportOptions, stream?: FileSystemWritableFileStream) => {
         // SOG, SPZ and viewer exports have their own progress UI, other formats use spinner
-        const useSpinner = fileType !== 'sog' && fileType !== 'spz' && fileType !== 'htmlViewer' && fileType !== 'packageViewer';
+        const useSpinner = fileType !== 'sog' && fileType !== 'spz' && fileType !== 'htmlViewer' && fileType !== 'packageViewer' && fileType !== 'experience';
 
         if (useSpinner) {
             events.fire('startSpinner');
@@ -789,6 +814,9 @@ const initFileHandler = (scene: Scene, events: Events, dropTarget: HTMLElement) 
                 case 'htmlViewer':
                 case 'packageViewer':
                     await serializeViewer(splats, serializeSettings, { ...viewerExportSettings!, events }, fs);
+                    break;
+                case 'experience':
+                    await exportExperience(events, scene, serializeSettings, options, fs);
                     break;
             }
             return true;

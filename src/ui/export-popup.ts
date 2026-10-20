@@ -519,7 +519,8 @@ class ExportPopup extends Container {
                 ssproj: [],
                 sog: [bandsRow, iterationsRow],
                 spz: [bandsRow, spzVersionRow],
-                viewer: [viewerTypeRow, animationRow, loopRow, colorRow, fovRow, bandsRow]
+                viewer: [viewerTypeRow, animationRow, loopRow, colorRow, fovRow, bandsRow],
+                experience: [animationRow, loopRow, colorRow, fovRow, bandsRow, iterationsRow]
             }[exportType];
 
             allRows.forEach((r) => {
@@ -554,6 +555,9 @@ class ExportPopup extends Container {
                     break;
                 case 'viewer':
                     updateExtension(viewerTypeSelect.value === 'html' ? '.html' : '.zip');
+                    break;
+                case 'experience':
+                    updateExtension('.zip');
                     break;
                 case 'ssproj':
                     filenameExtension = '.ssproj';
@@ -612,6 +616,17 @@ class ExportPopup extends Container {
                             loopMode: loopSelect.value as ExportChoices['loopMode'],
                             backgroundColor: colorPicker.value.slice(0, 3) as [number, number, number],
                             fov: fovSlider.value
+                        };
+                    case 'experience':
+                        return {
+                            filename,
+                            maxSHBands: bandsSlider.value,
+                            viewerType: 'zip',
+                            includeAnimation: animationToggle.value,
+                            loopMode: loopSelect.value as ExportChoices['loopMode'],
+                            backgroundColor: colorPicker.value.slice(0, 3) as [number, number, number],
+                            fov: fovSlider.value,
+                            sogIterations: iterationsSlider.value
                         };
                     default:
                         // splat and ssproj have no settings

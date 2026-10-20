@@ -9,6 +9,7 @@ import { Scene } from '../scene';
 import type { Splat } from '../splat';
 import { deserializeExperience, serializeExperience } from './experience-doc';
 import { find, removeLayer } from './experience-ops';
+import { exportProblems } from './experience-settings';
 import { emptyExperience, type Experience, type LayerInfo, type LayerPose } from './types';
 
 type ExperienceSelection = { kind: 'annotation' | 'screen' | 'door'; id: string } | null;
@@ -40,13 +41,15 @@ const registerExperienceEvents = (events: Events, scene: Scene) => {
 
     events.function('experience.get', () => store);
 
-    events.function('experience.layers', () => (scene.getElementsByType(ElementType.splat) as Splat[]).map(splat => ({
+    // the layers as the export and the panel see them
+    const layers = () => (scene.getElementsByType(ElementType.splat) as Splat[]).map(splat => ({
         uid: splat.uid,
         name: splat.name,
         visible: splat.visible,
         pose: splatPose(splat)
-    }))
-    );
+    }));
+
+    events.function('experience.layers', layers);
 
     events.function('experience.layerPose', (uid: number) => {
         const splat = (scene.getElementsByType(ElementType.splat) as Splat[]).find(s => s.uid === uid);
@@ -54,6 +57,9 @@ const registerExperienceEvents = (events: Events, scene: Scene) => {
     });
 
     events.function('experience.hasRoomsOrScreens', () => store.rooms.length > 0 || store.screens.length > 0);
+
+    // what stops an export: one line per problem, empty means it may go
+    events.function('experience.exportProblems', () => exportProblems(store, layers()));
 
     // one generic edit command: snapshot, mutate, push the undo op (the mutation has
     // already happened, so the op is added suppressed)

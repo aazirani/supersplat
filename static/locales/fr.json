@@ -442,5 +442,8 @@
     "panel.experience.arrival-set": "Arrival pose captured",
     "panel.experience.arrival-missing": "No arrival pose yet: show the destination room, place the camera where visitors arrive, then set it",
     "panel.experience.arrival-hidden": "Show the destination room first, then place the camera where visitors should arrive.",
-    "panel.experience.edit-door": "Edit box"
+    "panel.experience.edit-door": "Edit box",
+    "menu.file.export.experience": "Experience (.zip)",
+    "popup.export.experience-only": "This scene has rooms or video screens. Use File → Export → Experience (.zip) for it.",
+    "popup.export.experience-problems": "The experience is not ready to export:"
 }

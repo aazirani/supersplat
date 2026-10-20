@@ -842,6 +842,7 @@ export {
     Writer,
     writeResourceFile,
     writeSplatFile,
+    createProgressRenderer,
     serializeSog,
     serializeSpz,
     serializeViewer,
