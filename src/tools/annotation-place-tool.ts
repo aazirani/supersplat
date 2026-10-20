@@ -5,7 +5,7 @@ import { Container, Label } from '@playcanvas/pcui';
 
 import { Events } from '../events';
 import { addAnnotation } from '../experience/experience-ops';
-import type { ExperienceAnnotation, PoseT } from '../experience/types';
+import type { Experience, ExperienceAnnotation, PoseT } from '../experience/types';
 import { Scene } from '../scene';
 import { i18n } from '../ui/localization';
 // pointer movement below this many pixels still counts as a click
@@ -88,13 +88,13 @@ class AnnotationPlaceTool {
 
                 if (target === null) {
                     let created: ExperienceAnnotation = null;
-                    events.fire('experience.edit', 'addAnnotation', (experience) => {
+                    events.fire('experience.edit', 'addAnnotation', (experience: Experience) => {
                         created = addAnnotation(experience, { layer, position, camera: poseFromCamera(), layerPose });
                     });
                     events.fire('experience.select', { kind: 'annotation', id: created.id });
                 } else {
                     const id = target;
-                    events.fire('experience.edit', 'moveAnnotation', (experience) => {
+                    events.fire('experience.edit', 'moveAnnotation', (experience: Experience) => {
                         const annotation = experience.annotations.find(a => a.id === id);
                         if (annotation) {
                             annotation.position = position;

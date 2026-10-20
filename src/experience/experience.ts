@@ -110,4 +110,4 @@ const registerExperienceEvents = (events: Events, scene: Scene) => {
     });
 };
 
-export { registerExperienceEvents };
+export { registerExperienceEvents, type ExperienceSelection };

@@ -7,7 +7,7 @@ import { Vec3 } from 'playcanvas';
 import { Events } from '../events';
 import { addScreen } from '../experience/experience-ops';
 import { fitScreenCorners } from '../experience/screen-fit';
-import type { ExperienceScreen, Vec3T } from '../experience/types';
+import type { Experience, ExperienceScreen, Vec3T } from '../experience/types';
 import { Scene } from '../scene';
 import { ToolOverlay, OverlayWriter } from '../tool-overlay';
 import { i18n } from '../ui/localization';
@@ -73,13 +73,13 @@ class ScreenCornersTool {
             const layerPose = events.invoke('experience.layerPose', layer);
             if (target === null) {
                 let created: ExperienceScreen = null;
-                events.fire('experience.edit', 'addScreen', (experience) => {
+                events.fire('experience.edit', 'addScreen', (experience: Experience) => {
                     created = addScreen(experience, { layer, corners, layerPose });
                 });
                 events.fire('experience.select', { kind: 'screen', id: created.id });
             } else {
                 const id = target;
-                events.fire('experience.edit', 'moveScreen', (experience) => {
+                events.fire('experience.edit', 'moveScreen', (experience: Experience) => {
                     const screen = experience.screens.find(s => s.id === id);
                     if (screen) {
                         screen.corners = corners;

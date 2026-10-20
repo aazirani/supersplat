@@ -5,6 +5,7 @@ import { Vec3 } from 'playcanvas';
 
 import { BoxShape } from '../box-shape';
 import { Events } from '../events';
+import type { Experience } from '../experience/types';
 import { Scene } from '../scene';
 import { ShapeTransformGizmo } from './shape-transform-gizmo';
 
@@ -18,7 +19,7 @@ class DoorBoxTool {
         const box = new BoxShape();
 
         const doorOf = (id: string) => {
-            const experience = events.invoke('experience.get');
+            const experience = (events.invoke('experience.get') as Experience);
             for (const room of experience.rooms) {
                 const door = room.doors.find(d => d.id === id);
                 if (door) {
@@ -41,7 +42,7 @@ class DoorBoxTool {
             const center: [number, number, number] = [p.x, p.y, p.z];
             const size: [number, number, number] = [box.lenX, box.lenY, box.lenZ];
             const id = doorId;
-            events.fire('experience.edit', 'moveDoor', (experience) => {
+            events.fire('experience.edit', 'moveDoor', (experience: Experience) => {
                 for (const room of experience.rooms) {
                     const d = room.doors.find(x => x.id === id);
                     if (d) {

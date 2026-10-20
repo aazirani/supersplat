@@ -8,9 +8,10 @@ import type { ExperienceSettings as ForkSettings } from '@playcanvas/supersplat-
 import { ElementType } from './element';
 import { Events } from './events';
 import { composeExperience } from './experience/experience-settings';
+import type { SceneExportOptions } from './export-options';
 import { Scene } from './scene';
 import { Splat } from './splat';
-import { createProgressRenderer, writeSplatFile, type SceneExportOptions, type SerializeSettings, type ViewerExportSettings } from './splat-serialize';
+import { createProgressRenderer, writeSplatFile, type SerializeSettings, type ViewerExportSettings } from './splat-serialize';
 
 // one room's SOG content into a fresh memory filesystem, so the fixed 'scene.sog'
 // name inside can be placed at any path in the zip

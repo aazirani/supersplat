@@ -1,13 +1,14 @@
 // The Experience panel: annotations, screens and rooms authored for the exported experience.
 // Opens from the right toolbar, in the style of the Overlays panel.
 
-import { BooleanInput, Button, Container, Label, NumericInput, SelectInput, TextAreaInput, TextInput, VectorInput } from '@playcanvas/pcui';
+import { BooleanInput, Button, Container, Element, Label, NumericInput, SelectInput, TextAreaInput, TextInput, VectorInput } from '@playcanvas/pcui';
 
 import { Events } from '../events';
 import { i18n } from './localization';
-import { addDoor, layerPoseChanged, removeItem, setRoom, slugify, type ExperienceAnnotation, type ExperienceScreen } from '../experience/experience-ops';
+import type { ExperienceSelection } from '../experience/experience';
+import { addDoor, layerPoseChanged, removeItem, setRoom, slugify } from '../experience/experience-ops';
 import { fitScreenCorners } from '../experience/screen-fit';
-import { DEFAULT_SOUND, DOOR_DEFAULTS } from '../experience/types';
+import { DEFAULT_SOUND, DOOR_DEFAULTS, type Experience, type ExperienceAnnotation, type ExperienceRoom, type ExperienceScreen } from '../experience/types';
 import experienceSvg from './svg/experience.svg';
 import { Tooltips } from './tooltips';
 
@@ -125,8 +126,8 @@ class ExperiencePanel extends Container {
         annotationFields.append(annotationButtonRow);
 
         const selectedAnnotation = (): ExperienceAnnotation | null => {
-            const selection = events.invoke('experience.selection');
-            const experience = events.invoke('experience.get');
+            const selection = (events.invoke('experience.selection') as ExperienceSelection);
+            const experience = (events.invoke('experience.get') as Experience);
             return selection?.kind === 'annotation' ? experience.annotations.find(a => a.id === selection.id) ?? null : null;
         };
 
@@ -143,8 +144,8 @@ class ExperiencePanel extends Container {
 
         const rebuildAnnotationList = () => {
             annotationList.clear();
-            const experience = events.invoke('experience.get');
-            const selection = events.invoke('experience.selection');
+            const experience = (events.invoke('experience.get') as Experience);
+            const selection = (events.invoke('experience.selection') as ExperienceSelection);
 
             for (const annotation of experience.annotations) {
                 const listRow = new Container({ class: 'experience-list-row' });
@@ -192,7 +193,7 @@ class ExperiencePanel extends Container {
             const annotation = selectedAnnotation();
             if (annotation) {
                 const id = annotation.id;
-                events.fire('experience.edit', 'removeAnnotation', (experience) => {
+                events.fire('experience.edit', 'removeAnnotation', (experience: Experience) => {
                     removeItem(experience, 'annotation', id);
                 });
             }
@@ -207,7 +208,7 @@ class ExperiencePanel extends Container {
             if (annotation && annotation.title !== value) {
                 const id = annotation.id;
                 suppressUI++;
-                events.fire('experience.edit', 'setAnnotationTitle', (experience) => {
+                events.fire('experience.edit', 'setAnnotationTitle', (experience: Experience) => {
                     const a = experience.annotations.find(x => x.id === id);
                     if (a) {
                         a.title = value;
@@ -226,7 +227,7 @@ class ExperiencePanel extends Container {
             if (annotation && annotation.text !== value) {
                 const id = annotation.id;
                 suppressUI++;
-                events.fire('experience.edit', 'setAnnotationText', (experience) => {
+                events.fire('experience.edit', 'setAnnotationText', (experience: Experience) => {
                     const a = experience.annotations.find(x => x.id === id);
                     if (a) {
                         a.text = value;
@@ -246,7 +247,7 @@ class ExperiencePanel extends Container {
                     target: [pose.target.x, pose.target.y, pose.target.z] as [number, number, number],
                     fov: pose.fov
                 };
-                events.fire('experience.edit', 'setAnnotationCamera', (experience) => {
+                events.fire('experience.edit', 'setAnnotationCamera', (experience: Experience) => {
                     const a = experience.annotations.find(x => x.id === id);
                     if (a) {
                         a.camera = camera;
@@ -314,7 +315,7 @@ class ExperiencePanel extends Container {
         const refDistanceInput = new NumericInput({ class: 'settings-panel-row-input', min: 0.01, precision: 2, step: 0.1 });
         const fadeDistanceInput = new NumericInput({ class: 'settings-panel-row-input', min: 0.02, precision: 2, step: 0.5 });
 
-        const labeledRow = (key: string, control: Container) => {
+        const labeledRow = (key: string, control: Element) => {
             const r = row();
             r.append(rowLabel(key));
             r.append(control);
@@ -333,8 +334,8 @@ class ExperiencePanel extends Container {
         screenFields.append(labeledRow('panel.experience.fade-distance', fadeDistanceInput));
 
         const selectedScreen = (): ExperienceScreen | null => {
-            const selection = events.invoke('experience.selection');
-            const experience = events.invoke('experience.get');
+            const selection = (events.invoke('experience.selection') as ExperienceSelection);
+            const experience = (events.invoke('experience.get') as Experience);
             return selection?.kind === 'screen' ? experience.screens.find(s => s.id === selection.id) ?? null : null;
         };
 
@@ -369,8 +370,8 @@ class ExperiencePanel extends Container {
 
         const rebuildScreenList = () => {
             screenList.clear();
-            const experience = events.invoke('experience.get');
-            const selection = events.invoke('experience.selection');
+            const experience = (events.invoke('experience.get') as Experience);
+            const selection = (events.invoke('experience.selection') as ExperienceSelection);
 
             for (const screen of experience.screens) {
                 const listRow = new Container({ class: 'experience-list-row' });
@@ -402,7 +403,7 @@ class ExperiencePanel extends Container {
             }
             const id = screen.id;
             suppressUI++;
-            events.fire('experience.edit', name, (experience) => {
+            events.fire('experience.edit', name, (experience: Experience) => {
                 const s = experience.screens.find(x => x.id === id);
                 if (s) {
                     fn(s);
@@ -419,7 +420,7 @@ class ExperiencePanel extends Container {
             const screen = selectedScreen();
             if (screen) {
                 const id = screen.id;
-                events.fire('experience.edit', 'removeScreen', (experience) => {
+                events.fire('experience.edit', 'removeScreen', (experience: Experience) => {
                     removeItem(experience, 'screen', id);
                 });
             }
@@ -541,7 +542,7 @@ class ExperiencePanel extends Container {
         let showOnly = false;
 
         const roomOf = (uid: number) => {
-            const experience = events.invoke('experience.get');
+            const experience = (events.invoke('experience.get') as Experience);
             return experience.rooms.find(r => r.layer === uid) ?? null;
         };
 
@@ -551,11 +552,11 @@ class ExperiencePanel extends Container {
         };
 
         const selectedDoor = () => {
-            const selection = events.invoke('experience.selection');
+            const selection = (events.invoke('experience.selection') as ExperienceSelection);
             if (selection?.kind !== 'door') {
                 return null;
             }
-            const experience = events.invoke('experience.get');
+            const experience = (events.invoke('experience.get') as Experience);
             for (const room of experience.rooms) {
                 const door = room.doors.find(d => d.id === selection.id);
                 if (door) {
@@ -629,7 +630,7 @@ class ExperiencePanel extends Container {
             }
             const id = door.id;
             suppressUI++;
-            events.fire('experience.edit', name, (experience) => {
+            events.fire('experience.edit', name, (experience: Experience) => {
                 for (const room of experience.rooms) {
                     const d = room.doors.find(x => x.id === id);
                     if (d) {
@@ -682,7 +683,7 @@ class ExperiencePanel extends Container {
                 pose.position.z + (dz / len) * DOOR_DEFAULTS.distance
             ];
             let createdId: string = null;
-            events.fire('experience.edit', 'addDoor', (experience) => {
+            events.fire('experience.edit', 'addDoor', (experience: Experience) => {
                 const door = addDoor(experience, roomLayer, { center });
                 createdId = door?.id;
             });
@@ -703,7 +704,7 @@ class ExperiencePanel extends Container {
             const door = selectedDoor();
             if (door) {
                 const id = door.id;
-                events.fire('experience.edit', 'removeDoor', (experience) => {
+                events.fire('experience.edit', 'removeDoor', (experience: Experience) => {
                     removeItem(experience, 'door', id);
                 });
             }
@@ -802,7 +803,7 @@ class ExperiencePanel extends Container {
             if (!door || suppressUI > 0) {
                 return;
             }
-            const experience = events.invoke('experience.get');
+            const experience = (events.invoke('experience.get') as Experience);
             i18n.bindOptions(destinationSelect, () => experience.rooms
             .filter(r => r.layer !== room.layer)
             .map(r => ({ v: String(r.layer), t: r.id }))
@@ -818,7 +819,7 @@ class ExperiencePanel extends Container {
         const rebuildRoomsList = () => {
             roomsList.clear();
             const layers = events.invoke('experience.layers') as { uid: number, name: string, visible: boolean }[];
-            const experience = events.invoke('experience.get');
+            const experience = (events.invoke('experience.get') as Experience);
 
             for (const layer of layers) {
                 const room = experience.rooms.find(r => r.layer === layer.uid);
@@ -836,7 +837,7 @@ class ExperiencePanel extends Container {
                     const uid = layer.uid;
                     const value = isRoomToggle.value;
                     const name = layer.name;
-                    events.fire('experience.edit', 'setRoom', (e) => {
+                    events.fire('experience.edit', 'setRoom', (e: Experience) => {
                         setRoom(e, uid, value, name);
                     });
                 });
@@ -854,7 +855,7 @@ class ExperiencePanel extends Container {
                         idInvalid.hidden = !invalid;
                     }
                     if (!invalid && value) {
-                        events.fire('experience.edit', 'setRoomId', (e) => {
+                        events.fire('experience.edit', 'setRoomId', (e: Experience) => {
                             const r = e.rooms.find(x => x.layer === uid);
                             if (r) {
                                 r.id = value;
@@ -869,7 +870,7 @@ class ExperiencePanel extends Container {
                 firstToggle.on('change', () => {
                     if (firstToggle.value) {
                         const uid = layer.uid;
-                        events.fire('experience.edit', 'setFirstRoom', (e) => {
+                        events.fire('experience.edit', 'setFirstRoom', (e: Experience) => {
                             e.firstRoom = uid;
                         });
                     }
@@ -905,8 +906,8 @@ class ExperiencePanel extends Container {
             if (!room) {
                 return;
             }
-            const experience = events.invoke('experience.get');
-            const selection = events.invoke('experience.selection');
+            const experience = (events.invoke('experience.get') as Experience);
+            const selection = (events.invoke('experience.selection') as ExperienceSelection);
 
             for (const door of room.doors) {
                 const listRow = new Container({ class: 'experience-list-row' });
