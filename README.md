@@ -49,7 +49,7 @@ When changes to the source are detected, SuperSplat is rebuilt automatically. Si
 ## Museum Authoring
 
 The Experience panel (the map-pin button on the right toolbar) authors everything the forked
-[SuperSplat viewer](../supersplat-viewer) can play, so a published experience needs no hand-edited
+[SuperSplat viewer](https://github.com/aazirani/supersplat-viewer/tree/feature/museum-integration) can play, so a published experience needs no hand-edited
 `settings.json`:
 
 - **Annotations** — a point picked on a splat, a title, text (links are written as
@@ -73,11 +73,16 @@ media/<screen id>.<ext>                                     (picked video files)
 
 Unzip and serve the folder; the experience opens in the forked viewer, and `?room=<id>` starts
 in another room. Doors without an arrival pose, rooms without a destination and screens without
-a source are listed and refused until fixed. The plain single-file Viewer HTML export stays as
-it is and is refused while the scene has rooms or screens.
+a source are listed and refused until fixed. Layers the export leaves out (hidden, or not a room
+once rooms exist) are listed for confirmation first. The plain single-file Viewer HTML export
+stays as it is and is refused while the scene has rooms or screens.
 
-The viewer is the sibling checkout `../supersplat-viewer` (branch `feature/museum-integration`),
-installed as the `@playcanvas/supersplat-viewer` file dependency.
+The viewer is the fork's `feature/museum-integration` branch, installed as the
+`@playcanvas/supersplat-viewer` git dependency pinned to a commit; its `prepare` script builds it
+on install. npm 12 refuses git dependencies by default: install with `npm install --allow-git=root`
+(or put `allow-git=root` in your own, untracked `.npmrc`).
+To try local viewer changes, `npm install ../supersplat-viewer` temporarily (do not commit that),
+or push the viewer and update the pinned commit in `package.json`.
 
 ### Running the Tests
 
