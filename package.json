@@ -21,6 +21,7 @@
         "develop:auto-launch": "concurrently --kill-others \"xdg-open 'http://localhost:3000/'\" \"npm run watch\" \"npm run serve\"",
         "lint": "eslint src",
         "lint:locales": "node scripts/check-locales.mjs",
+        "type:check": "tsc --noEmit",
         "test": "node --test \"test/*.test.mjs\""
     },
     "engines": {
