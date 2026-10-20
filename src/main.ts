@@ -23,6 +23,7 @@ import { registerTimelineEvents } from './timeline';
 import { AnnotationPlaceTool } from './tools/annotation-place-tool';
 import { BoxSelection } from './tools/box-selection';
 import { BrushSelection } from './tools/brush-selection';
+import { DoorBoxTool } from './tools/door-box-tool';
 import { EyedropperSelection } from './tools/eyedropper-selection';
 import { FloodSelection } from './tools/flood-selection';
 import { LassoSelection } from './tools/lasso-selection';
@@ -271,6 +272,7 @@ const main = async () => {
     toolManager.register('measure', new MeasureTool(events, scene, editorUI.canvasContainer, editorUI.annotationContainer.dom));
     toolManager.register('annotationPlace', new AnnotationPlaceTool(events, scene, editorUI.canvasContainer));
     toolManager.register('screenCorners', new ScreenCornersTool(events, scene, editorUI.canvasContainer));
+    toolManager.register('doorBox', new DoorBoxTool(events, scene));
     toolManager.register('orient', new OrientTool(events, scene, editorUI.toolsContainer.dom, editorUI.canvasContainer, editorUI.annotationContainer.dom));
 
     const boundDimensionsOverlay = new BoundDimensionsOverlay(events, scene, editorUI.canvasContainer, editorUI.annotationContainer.dom);

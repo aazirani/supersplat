@@ -425,5 +425,22 @@
     "tool.experience.corner-tr": "top right",
     "tool.experience.corner-br": "bottom right",
     "tool.experience.corner-bl": "bottom left",
-    "tool.experience.corners-degenerate": "Those four points do not form a rectangle. Pick them again."
+    "tool.experience.corners-degenerate": "Those four points do not form a rectangle. Pick them again.",
+    "panel.experience.is-room": "Is a room",
+    "panel.experience.room-id": "Room id",
+    "panel.experience.first-room": "First room (the page)",
+    "panel.experience.bad-id": "Use lowercase letters, digits and dashes; ids must be unique",
+    "panel.experience.show-only": "Show only this room",
+    "panel.experience.add-door": "Add door",
+    "panel.experience.door": "Door",
+    "panel.experience.destination": "Destination",
+    "panel.experience.label": "Label",
+    "panel.experience.preload-radius": "Preload radius",
+    "panel.experience.center": "Centre",
+    "panel.experience.door-size": "Size",
+    "panel.experience.set-arrival": "Set arrival from view",
+    "panel.experience.arrival-set": "Arrival pose captured",
+    "panel.experience.arrival-missing": "No arrival pose yet: show the destination room, place the camera where visitors arrive, then set it",
+    "panel.experience.arrival-hidden": "Show the destination room first, then place the camera where visitors should arrive.",
+    "panel.experience.edit-door": "Edit box"
 }

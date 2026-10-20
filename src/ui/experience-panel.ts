@@ -1,13 +1,13 @@
 // The Experience panel: annotations, screens and rooms authored for the exported experience.
 // Opens from the right toolbar, in the style of the Overlays panel.
 
-import { BooleanInput, Button, Container, Label, NumericInput, TextAreaInput, TextInput } from '@playcanvas/pcui';
+import { BooleanInput, Button, Container, Label, NumericInput, SelectInput, TextAreaInput, TextInput, VectorInput } from '@playcanvas/pcui';
 
 import { Events } from '../events';
 import { i18n } from './localization';
-import { layerPoseChanged, removeItem, type ExperienceAnnotation, type ExperienceScreen } from '../experience/experience-ops';
+import { addDoor, layerPoseChanged, removeItem, setRoom, slugify, type ExperienceAnnotation, type ExperienceScreen } from '../experience/experience-ops';
 import { fitScreenCorners } from '../experience/screen-fit';
-import { DEFAULT_SOUND } from '../experience/types';
+import { DEFAULT_SOUND, DOOR_DEFAULTS } from '../experience/types';
 import experienceSvg from './svg/experience.svg';
 import { Tooltips } from './tooltips';
 
@@ -526,6 +526,408 @@ class ExperiencePanel extends Container {
         refDistanceInput.on('change', () => editSoundField('setScreenRefDistance', 'refDistance', refDistanceInput.value));
         fadeDistanceInput.on('change', () => editSoundField('setScreenFadeDistance', 'fadeDistance', fadeDistanceInput.value));
 
+        // ------------------------------------------------------------------ rooms
+
+        const roomsList = new Container({
+            class: 'experience-list experience-rooms-list'
+        });
+
+        // the room whose doors are shown (a panel-local selection: rooms are layers,
+        // not experience items)
+        const roomSelection = { uid: null as number | null };
+
+        // which room layers were visible before "show only this room" hid them
+        const savedVisibility = new Map<number, boolean>();
+        let showOnly = false;
+
+        const roomOf = (uid: number) => {
+            const experience = events.invoke('experience.get');
+            return experience.rooms.find(r => r.layer === uid) ?? null;
+        };
+
+        const isRoomLayerHidden = (uid: number) => {
+            const layers = events.invoke('experience.layers') as { uid: number, visible: boolean }[];
+            return !(layers.find(l => l.uid === uid)?.visible ?? false);
+        };
+
+        const selectedDoor = () => {
+            const selection = events.invoke('experience.selection');
+            if (selection?.kind !== 'door') {
+                return null;
+            }
+            const experience = events.invoke('experience.get');
+            for (const room of experience.rooms) {
+                const door = room.doors.find(d => d.id === selection.id);
+                if (door) {
+                    return door;
+                }
+            }
+            return null;
+        };
+
+        // ------------------------------------------------------------------ rooms: fields
+
+        const roomFields = new Container({ class: 'experience-fields', hidden: true });
+
+        const showOnlyToggle = new BooleanInput({ type: 'toggle', value: false });
+        const showOnlyRow = row();
+        showOnlyRow.append(rowLabel('panel.experience.show-only'));
+        showOnlyRow.append(showOnlyToggle);
+
+        const addDoorButton = new Button({ class: 'experience-button' });
+        i18n.bindText(addDoorButton, 'panel.experience.add-door');
+
+        const editDoorButton = new Button({ class: 'experience-button' });
+        i18n.bindText(editDoorButton, 'panel.experience.edit-door');
+
+        const doorButtonsRow = new Container({ class: 'settings-panel-row' });
+        doorButtonsRow.append(addDoorButton);
+        doorButtonsRow.append(editDoorButton);
+
+        const doorList = new Container({
+            class: 'experience-list'
+        });
+
+        const removeDoorButton = new Button({ class: 'experience-button', enabled: false });
+        i18n.bindText(removeDoorButton, 'panel.experience.remove');
+        const removeDoorRow = new Container({ class: 'settings-panel-row' });
+        removeDoorRow.append(removeDoorButton);
+
+        roomFields.append(showOnlyRow);
+        roomFields.append(doorButtonsRow);
+        roomFields.append(doorList);
+        roomFields.append(removeDoorRow);
+
+        // fields of the selected door
+
+        const doorFields = new Container({ class: 'experience-fields', hidden: true });
+
+        const destinationSelect = new SelectInput({ class: 'settings-panel-row-input' });
+        const doorLabelInput = new TextInput({ class: 'settings-panel-row-input', placeholder: '' });
+        const preloadRadiusInput = new NumericInput({ class: 'settings-panel-row-input', min: 0.1, precision: 1, step: 0.5 });
+        const doorCenterInput = new VectorInput({ class: 'settings-panel-row-input', precision: 2, dimensions: 3 });
+        const doorSizeInput = new VectorInput({ class: 'settings-panel-row-input', precision: 2, dimensions: 3 });
+        doorSizeInput.min = 0.05;
+
+        const setArrivalButton = new Button({ class: 'experience-button' });
+        i18n.bindText(setArrivalButton, 'panel.experience.set-arrival');
+
+        const arrivalStatus = new Label({ class: 'settings-panel-row-label experience-hint' });
+
+        doorFields.append(labeledRow('panel.experience.destination', destinationSelect));
+        doorFields.append(labeledRow('panel.experience.label', doorLabelInput));
+        doorFields.append(labeledRow('panel.experience.preload-radius', preloadRadiusInput));
+        doorFields.append(labeledRow('panel.experience.center', doorCenterInput));
+        doorFields.append(labeledRow('panel.experience.door-size', doorSizeInput));
+        doorFields.append(setArrivalButton);
+        doorFields.append(arrivalStatus);
+
+        const editDoor = (name: string, fn: (door: NonNullable<ReturnType<typeof selectedDoor>>) => void) => {
+            const door = selectedDoor();
+            if (!door) {
+                return;
+            }
+            const id = door.id;
+            suppressUI++;
+            events.fire('experience.edit', name, (experience) => {
+                for (const room of experience.rooms) {
+                    const d = room.doors.find(x => x.id === id);
+                    if (d) {
+                        fn(d);
+                    }
+                }
+            });
+            suppressUI--;
+        };
+
+        showOnlyToggle.on('change', () => {
+            if (roomSelection.uid === null) {
+                return;
+            }
+            const splats = events.invoke('scene.allSplats') as { uid: number, visible: boolean }[];
+            if (showOnlyToggle.value && !showOnly) {
+                showOnly = true;
+                savedVisibility.clear();
+                for (const splat of splats) {
+                    savedVisibility.set(splat.uid, splat.visible);
+                    if (splat.uid !== roomSelection.uid) {
+                        splat.visible = false;
+                    }
+                }
+            } else if (!showOnlyToggle.value && showOnly) {
+                showOnly = false;
+                for (const splat of splats) {
+                    const saved = savedVisibility.get(splat.uid);
+                    if (saved !== undefined) {
+                        splat.visible = saved;
+                    }
+                }
+            }
+        });
+
+        addDoorButton.on('click', () => {
+            if (roomSelection.uid === null) {
+                return;
+            }
+            const roomLayer = roomSelection.uid;
+            // 2 m in front of the camera, along its view direction
+            const pose = events.invoke('camera.getPose');
+            const dx = pose.target.x - pose.position.x;
+            const dy = pose.target.y - pose.position.y;
+            const dz = pose.target.z - pose.position.z;
+            const len = Math.hypot(dx, dy, dz) || 1;
+            const center: [number, number, number] = [
+                pose.position.x + (dx / len) * DOOR_DEFAULTS.distance,
+                pose.position.y + (dy / len) * DOOR_DEFAULTS.distance,
+                pose.position.z + (dz / len) * DOOR_DEFAULTS.distance
+            ];
+            let createdId: string = null;
+            events.fire('experience.edit', 'addDoor', (experience) => {
+                const door = addDoor(experience, roomLayer, { center });
+                createdId = door?.id;
+            });
+            if (createdId) {
+                events.fire('experience.select', { kind: 'door', id: createdId });
+                events.fire('experience.editDoor', createdId);
+            }
+        });
+
+        editDoorButton.on('click', () => {
+            const door = selectedDoor();
+            if (door) {
+                events.fire('experience.editDoor', door.id);
+            }
+        });
+
+        removeDoorButton.on('click', () => {
+            const door = selectedDoor();
+            if (door) {
+                const id = door.id;
+                events.fire('experience.edit', 'removeDoor', (experience) => {
+                    removeItem(experience, 'door', id);
+                });
+            }
+        });
+
+        destinationSelect.on('change', () => {
+            if (suppressUI > 0) {
+                return;
+            }
+            const to = Number(destinationSelect.value);
+            editDoor('setDoorDestination', (d) => {
+                d.to = to;
+            });
+        });
+
+        doorLabelInput.on('change', () => {
+            if (suppressUI > 0) {
+                return;
+            }
+            const value = doorLabelInput.value;
+            editDoor('setDoorLabel', (d) => {
+                d.label = value;
+            });
+        });
+
+        preloadRadiusInput.on('change', () => {
+            if (suppressUI > 0) {
+                return;
+            }
+            const value = preloadRadiusInput.value;
+            editDoor('setDoorPreloadRadius', (d) => {
+                d.preloadRadius = value;
+            });
+        });
+
+        doorCenterInput.on('change', () => {
+            if (suppressUI > 0) {
+                return;
+            }
+            const v = doorCenterInput.value;
+            editDoor('setDoorCenter', (d) => {
+                d.center = [v[0], v[1], v[2]];
+            });
+        });
+
+        doorSizeInput.on('change', () => {
+            if (suppressUI > 0) {
+                return;
+            }
+            const v = doorSizeInput.value;
+            editDoor('setDoorSize', (d) => {
+                d.size = [Math.max(v[0], 0.05), Math.max(v[1], 0.05), Math.max(v[2], 0.05)];
+            });
+        });
+
+        setArrivalButton.on('click', () => {
+            const door = selectedDoor();
+            if (!door) {
+                return;
+            }
+            if (isRoomLayerHidden(door.to)) {
+                events.invoke('showPopup', {
+                    type: 'info',
+                    header: i18n.t('panel.experience.set-arrival'),
+                    message: i18n.t('panel.experience.arrival-hidden')
+                });
+                return;
+            }
+            const pose = events.invoke('camera.getPose');
+            const arrival = {
+                position: [pose.position.x, pose.position.y, pose.position.z] as [number, number, number],
+                target: [pose.target.x, pose.target.y, pose.target.z] as [number, number, number]
+            };
+            editDoor('setDoorArrival', (d) => {
+                d.arrival = arrival;
+            });
+        });
+
+        // ------------------------------------------------------------------ rooms: rebuild
+
+        const SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+
+        const updateRoomFields = () => {
+            const room = roomSelection.uid !== null ? roomOf(roomSelection.uid) : null;
+            roomFields.hidden = !room;
+            if (!room) {
+                doorFields.hidden = true;
+                return;
+            }
+            showOnlyToggle.enabled = true;
+
+            const door = selectedDoor();
+            doorList.hidden = room.doors.length === 0;
+            removeDoorButton.enabled = !!door;
+            doorFields.hidden = !door;
+            if (!door || suppressUI > 0) {
+                return;
+            }
+            const experience = events.invoke('experience.get');
+            i18n.bindOptions(destinationSelect, () => experience.rooms
+            .filter(r => r.layer !== room.layer)
+            .map(r => ({ v: String(r.layer), t: r.id }))
+            );
+            destinationSelect.value = String(door.to);
+            doorLabelInput.value = door.label;
+            preloadRadiusInput.value = door.preloadRadius;
+            doorCenterInput.value = [...door.center];
+            doorSizeInput.value = [...door.size];
+            arrivalStatus.text = i18n.t(door.arrival ? 'panel.experience.arrival-set' : 'panel.experience.arrival-missing');
+        };
+
+        const rebuildRoomsList = () => {
+            roomsList.clear();
+            const layers = events.invoke('experience.layers') as { uid: number, name: string, visible: boolean }[];
+            const experience = events.invoke('experience.get');
+
+            for (const layer of layers) {
+                const room = experience.rooms.find(r => r.layer === layer.uid);
+                const listRow = new Container({ class: 'experience-list-row experience-room-row' });
+                if (roomSelection.uid === layer.uid) {
+                    listRow.class.add('selected');
+                }
+
+                const nameLabel = new Label({ class: 'experience-list-row-label' });
+                nameLabel.text = layer.name;
+
+                // is a room
+                const isRoomToggle = new BooleanInput({ type: 'toggle', value: !!room });
+                isRoomToggle.on('change', () => {
+                    const uid = layer.uid;
+                    const value = isRoomToggle.value;
+                    const name = layer.name;
+                    events.fire('experience.edit', 'setRoom', (e) => {
+                        setRoom(e, uid, value, name);
+                    });
+                });
+
+                // the room id, editable when the layer is a room
+                const idInput = new TextInput({ class: 'settings-panel-row-input experience-room-id', enabled: !!room });
+                idInput.value = room?.id ?? slugify(layer.name);
+                let idInvalid: Label = null;
+                idInput.on('change', () => {
+                    const uid = layer.uid;
+                    const value = idInput.value.trim();
+                    const taken = value !== '' && experience.rooms.some(r => r.layer !== uid && r.id === value);
+                    const invalid = !SLUG.test(value) || taken;
+                    if (idInvalid) {
+                        idInvalid.hidden = !invalid;
+                    }
+                    if (!invalid && value) {
+                        events.fire('experience.edit', 'setRoomId', (e) => {
+                            const r = e.rooms.find(x => x.layer === uid);
+                            if (r) {
+                                r.id = value;
+                            }
+                        });
+                    }
+                });
+
+                // first room (the page): radio-like, setting one clears the others
+                const firstToggle = new BooleanInput({ type: 'toggle', value: experience.firstRoom === layer.uid });
+                firstToggle.enabled = !!room;
+                firstToggle.on('change', () => {
+                    if (firstToggle.value) {
+                        const uid = layer.uid;
+                        events.fire('experience.edit', 'setFirstRoom', (e) => {
+                            e.firstRoom = uid;
+                        });
+                    }
+                });
+
+                listRow.append(nameLabel);
+                listRow.append(isRoomToggle);
+                listRow.append(idInput);
+                listRow.append(firstToggle);
+
+                listRow.dom.addEventListener('click', (e) => {
+                    if (e.target instanceof Node && (isRoomToggle.dom.contains(e.target) || idInput.dom.contains(e.target) || firstToggle.dom.contains(e.target))) {
+                        return;
+                    }
+                    roomSelection.uid = layer.uid;
+                    updateRoomFields();
+                    rebuildRoomsList();
+                });
+
+                roomsList.append(listRow);
+
+                if (room) {
+                    idInvalid = new Label({ class: 'settings-panel-row-label experience-bad-id', hidden: true });
+                    i18n.bindText(idInvalid, 'panel.experience.bad-id');
+                    roomsList.append(idInvalid);
+                }
+            }
+        };
+
+        const rebuildDoorList = () => {
+            doorList.clear();
+            const room = roomSelection.uid !== null ? roomOf(roomSelection.uid) : null;
+            if (!room) {
+                return;
+            }
+            const experience = events.invoke('experience.get');
+            const selection = events.invoke('experience.selection');
+
+            for (const door of room.doors) {
+                const listRow = new Container({ class: 'experience-list-row' });
+                if (selection?.kind === 'door' && selection.id === door.id) {
+                    listRow.class.add('selected');
+                }
+
+                const label = new Label({ class: 'experience-list-row-label' });
+                const destination = experience.rooms.find(r => r.layer === door.to)?.id;
+                label.text = `${door.label || i18n.t('panel.experience.door')} ${door.id}${destination ? ` → ${destination}` : ''}`;
+
+                listRow.append(label);
+
+                listRow.dom.addEventListener('click', () => {
+                    events.fire('experience.select', { kind: 'door', id: door.id });
+                });
+
+                doorList.append(listRow);
+            }
+        };
+
         // ------------------------------------------------------------------ sections
 
         this.append(header);
@@ -537,6 +939,10 @@ class ExperiencePanel extends Container {
         this.append(screenList);
         this.append(screenButtonsRow);
         this.append(screenFields);
+        this.append(sectionHeader('panel.experience.rooms'));
+        this.append(roomsList);
+        this.append(roomFields);
+        this.append(doorFields);
 
         // rebuild on every change of the data or the scene's layers
         const rebuild = () => {
@@ -544,6 +950,9 @@ class ExperiencePanel extends Container {
             updateAnnotationFields();
             rebuildScreenList();
             updateScreenFields();
+            rebuildRoomsList();
+            rebuildDoorList();
+            updateRoomFields();
         };
 
         events.on('experience.changed', rebuild);
