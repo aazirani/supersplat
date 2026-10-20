@@ -410,6 +410,7 @@
     "tool.experience.place-hint": "Click a point on a splat to place the annotation",
     "panel.experience.re-pick": "Re-pick corners",
     "panel.experience.choose-file": "Choose file…",
+    "panel.experience.large-video": "Cette vidéo fait {{size}} Mo. Elle est stockée dans le fichier du projet et dans l'export : l'enregistrement, l'ouverture et l'export seront plus lents et utiliseront plus de mémoire. Un clip plus court ou plus compressé les garde rapides.",
     "panel.experience.url": "URL",
     "panel.experience.no-source": "No video",
     "panel.experience.size": "Size",

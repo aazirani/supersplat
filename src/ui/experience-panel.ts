@@ -17,6 +17,9 @@ const createSvg = (svgString: string) => {
     return new DOMParser().parseFromString(decodedStr, 'image/svg+xml').documentElement;
 };
 
+// a picked video past this size gets a note about project and export size
+const LARGE_VIDEO_BYTES = 100 * 1024 * 1024;
+
 class ExperiencePanel extends Container {
     constructor(events: Events, tooltips: Tooltips, args = {}) {
         args = {
@@ -443,6 +446,15 @@ class ExperiencePanel extends Container {
                 editScreen('setScreenSource', (s) => {
                     s.source = { kind: 'file', name: file.name, blob: file };
                 });
+                // the clip is embedded whole in the project and the export, and read into
+                // memory on save, open and export: past this size, say so
+                if (file.size > LARGE_VIDEO_BYTES) {
+                    events.invoke('showPopup', {
+                        type: 'info',
+                        header: i18n.t('panel.experience.screens'),
+                        message: i18n.t('panel.experience.large-video', { size: Math.round(file.size / (1024 * 1024)) })
+                    });
+                }
             }
             // allow picking the same file again
             fileInput.value = '';
@@ -454,9 +466,17 @@ class ExperiencePanel extends Container {
             }
             const value = urlInput.value.trim();
             const screen = selectedScreen();
-            if (screen && value && !(screen.source?.kind === 'url' && screen.source.url === value)) {
+            if (!screen) {
+                return;
+            }
+            if (value && !(screen.source?.kind === 'url' && screen.source.url === value)) {
                 editScreen('setScreenSource', (s) => {
                     s.source = { kind: 'url', url: value };
+                });
+            } else if (!value && screen.source?.kind === 'url') {
+                // an emptied field clears a url source (a picked file shows no url, so stays)
+                editScreen('setScreenSource', (s) => {
+                    s.source = null;
                 });
             }
         });

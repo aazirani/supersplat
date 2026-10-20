@@ -410,6 +410,7 @@
     "tool.experience.place-hint": "Click a point on a splat to place the annotation",
     "panel.experience.re-pick": "Re-pick corners",
     "panel.experience.choose-file": "Choose file…",
+    "panel.experience.large-video": "この動画は {{size}} MB です。プロジェクトファイルとエクスポートに埋め込まれるため、保存・読み込み・エクスポートが遅くなり、メモリも多く使います。短いクリップや圧縮率の高いクリップなら高速に保てます。",
     "panel.experience.url": "URL",
     "panel.experience.no-source": "No video",
     "panel.experience.size": "Size",

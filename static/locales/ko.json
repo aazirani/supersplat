@@ -410,6 +410,7 @@
     "tool.experience.place-hint": "Click a point on a splat to place the annotation",
     "panel.experience.re-pick": "Re-pick corners",
     "panel.experience.choose-file": "Choose file…",
+    "panel.experience.large-video": "이 동영상은 {{size}}MB입니다. 프로젝트 파일과 내보내기에 함께 저장되므로 저장, 열기, 내보내기가 느려지고 메모리를 더 사용합니다. 더 짧거나 더 압축된 클립을 사용하면 빠르게 유지됩니다.",
     "panel.experience.url": "URL",
     "panel.experience.no-source": "No video",
     "panel.experience.size": "Size",

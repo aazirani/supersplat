@@ -410,6 +410,7 @@
     "tool.experience.place-hint": "Click a point on a splat to place the annotation",
     "panel.experience.re-pick": "Re-pick corners",
     "panel.experience.choose-file": "Choose file…",
+    "panel.experience.large-video": "此视频大小为 {{size}} MB。它会存储在项目文件和导出内容中，因此保存、打开和导出会变慢并占用更多内存。使用更短或压缩率更高的片段可以保持速度。",
     "panel.experience.url": "URL",
     "panel.experience.no-source": "No video",
     "panel.experience.size": "Size",
