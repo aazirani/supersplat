@@ -392,5 +392,6 @@
     "popup.shortcuts.remove-last-polygon-point": "Supprimer le dernier point du polygone",
     "popup.shortcuts.remove-tool-point": "Supprimer le point de mesure/orientation sélectionné",
     "popup.shortcuts.stamp-key": "Remplacer la clé par la pose actuelle de la caméra",
-    "popup.shortcuts.copy-key": "Glisser une copie de la clé"
+    "popup.shortcuts.copy-key": "Glisser une copie de la clé",
+    "panel.overlays.experience": "Experience"
 }

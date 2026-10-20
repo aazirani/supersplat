@@ -8,6 +8,7 @@ import { EditHistory } from './edit-history';
 import { registerEditorEvents } from './editor';
 import { Events } from './events';
 import { registerExperienceEvents } from './experience/experience';
+import { ExperienceOverlay } from './experience/experience-overlay';
 import { initFileHandler } from './file-handler';
 import { registerIframeApi } from './iframe-api';
 import { registerPreferences } from './preferences';
@@ -269,6 +270,9 @@ const main = async () => {
     toolManager.register('orient', new OrientTool(events, scene, editorUI.toolsContainer.dom, editorUI.canvasContainer, editorUI.annotationContainer.dom));
 
     const boundDimensionsOverlay = new BoundDimensionsOverlay(events, scene, editorUI.canvasContainer, editorUI.annotationContainer.dom);
+
+    // the authored experience's viewport overlay
+    const experienceOverlay = new ExperienceOverlay(events, scene);
 
     editorUI.toolsContainer.dom.appendChild(maskCanvas);
 
