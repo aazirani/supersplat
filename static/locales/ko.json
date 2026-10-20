@@ -445,5 +445,6 @@
     "panel.experience.edit-door": "Edit box",
     "menu.file.export.experience": "Experience (.zip)",
     "popup.export.experience-only": "This scene has rooms or video screens. Use File → Export → Experience (.zip) for it.",
-    "popup.export.experience-problems": "The experience is not ready to export:"
+    "popup.export.experience-problems": "The experience is not ready to export:",
+    "popup.export.experience-warnings": "장면의 일부는 체험에 포함되지 않습니다:"
 }

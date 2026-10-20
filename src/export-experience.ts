@@ -49,15 +49,13 @@ const exportExperience = async (
         const layerInfos = events.invoke('experience.layers');
         const experience = events.invoke('experience.get');
 
-        const { pages, media, warnings } = composeExperience(
+        // its warnings were confirmed in the export dialog's lead-in
+        const { pages, media } = composeExperience(
             experience,
             layerInfos,
             // splat-transform's settings type is structurally the fork's for every field used
             experienceSettings as unknown as ForkSettings
         );
-        for (const warning of warnings) {
-            console.warn(warning);
-        }
 
         const zipWriter = await fs.createWriter('output.zip');
         const zipFs = new ZipFileSystem(zipWriter);

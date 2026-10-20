@@ -74,6 +74,30 @@ const exportProblems = (experience: Experience, layers: LayerInfo[]): string[] =
     return problems;
 };
 
+// What an export leaves out without being stopped by it, one line per layer, for the user to
+// confirm before the export runs: without rooms, content on hidden layers; with rooms, every
+// layer that is not a room (visible, or hidden with content).
+const exportWarnings = (experience: Experience, layers: LayerInfo[]): string[] => {
+    const warnings: string[] = [];
+    const hasContent = (uid: number) => experience.annotations.some(a => a.layer === uid) || experience.screens.some(s => s.layer === uid);
+
+    for (const layer of layers) {
+        if (experience.rooms.length === 0) {
+            if (!layer.visible && hasContent(layer.uid)) {
+                warnings.push(`Layer ${layer.name} is hidden; its annotations and screens are not exported.`);
+            }
+        } else if (!experience.rooms.some(r => r.layer === layer.uid)) {
+            if (layer.visible) {
+                warnings.push(`Layer ${layer.name} is not a room; it is not part of the experience.`);
+            } else if (hasContent(layer.uid)) {
+                warnings.push(`Layer ${layer.name} is hidden and not a room; its annotations and screens are not exported.`);
+            }
+        }
+    }
+
+    return warnings;
+};
+
 // the annotations and videos of one layer, in the viewer's settings format
 const layerEntries = (experience: Experience, layer: number): { annotations: unknown[]; videos: unknown[] } => {
     const annotations = experience.annotations
@@ -104,7 +128,7 @@ const composeExperience = (experience: Experience, layers: LayerInfo[], base: Ex
         throw new Error(problems.join('\n'));
     }
 
-    const warnings: string[] = [];
+    const warnings = exportWarnings(experience, layers);
     const media: ComposedMedia[] = [];
     const pages: ComposedPage[] = [];
 
@@ -131,13 +155,8 @@ const composeExperience = (experience: Experience, layers: LayerInfo[], base: Ex
         const annotations: unknown[] = [];
         const videos: unknown[] = [];
         for (const layer of layers) {
+            if (!layer.visible) continue;
             const entries = layerEntries(experience, layer.uid);
-            if (!layer.visible) {
-                if (entries.annotations.length > 0 || entries.videos.length > 0) {
-                    warnings.push(`Layer ${layer.name} is hidden; its annotations and screens are not exported.`);
-                }
-                continue;
-            }
             annotations.push(...entries.annotations);
             videos.push(...entries.videos);
         }
@@ -180,13 +199,6 @@ const composeExperience = (experience: Experience, layers: LayerInfo[], base: Ex
             settings.startMode = 'default';
             pages.push(roomPage(room, `rooms/${room.id}/`, settings));
         }
-
-        // a visible layer that is not a room exports nowhere; say so
-        for (const layer of layers) {
-            if (layer.visible && !experience.rooms.some(r => r.layer === layer.uid)) {
-                warnings.push(`Layer ${layer.name} is not a room; it is not part of the experience.`);
-            }
-        }
     }
 
     for (const page of pages) {
@@ -201,4 +213,4 @@ const composeExperience = (experience: Experience, layers: LayerInfo[], base: Ex
 };
 
 export type { ComposedMedia, ComposedPage, ComposeResult };
-export { composeExperience, exportProblems, mediaFileName };
+export { composeExperience, exportProblems, exportWarnings, mediaFileName };

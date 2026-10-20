@@ -9,7 +9,7 @@ import { Scene } from '../scene';
 import type { Splat } from '../splat';
 import { deserializeExperience, serializeExperience } from './experience-doc';
 import { find, keepLayers, removeLayer } from './experience-ops';
-import { exportProblems } from './experience-settings';
+import { exportProblems, exportWarnings } from './experience-settings';
 import { emptyExperience, type Experience, type LayerInfo, type LayerPose } from './types';
 
 type ExperienceSelection = { kind: 'annotation' | 'screen' | 'door'; id: string } | null;
@@ -60,6 +60,9 @@ const registerExperienceEvents = (events: Events, scene: Scene) => {
 
     // what stops an export: one line per problem, empty means it may go
     events.function('experience.exportProblems', () => exportProblems(store, layers()));
+
+    // what an export leaves out, for the user to confirm first
+    events.function('experience.exportWarnings', () => exportWarnings(store, layers()));
 
     // one generic edit command: snapshot, mutate, push the undo op (the mutation has
     // already happened, so the op is added suppressed)

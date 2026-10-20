@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 
 import { defaultSettings, validateSettings, ANNOTATION_LIMITS } from '@playcanvas/supersplat-viewer/settings';
-import { composeExperience, exportProblems, mediaFileName } from '../src/experience/experience-settings.ts';
+import { composeExperience, exportProblems, exportWarnings, mediaFileName } from '../src/experience/experience-settings.ts';
 import { DEFAULT_SOUND, SCREEN_DEFAULTS, emptyExperience } from '../src/experience/types.ts';
 
 const layerPose = () => ({ position: [0, 0, 0], rotation: [0, 0, 0, 1], scale: [1, 1, 1] });
@@ -122,6 +122,33 @@ describe('composeExperience with rooms', () => {
         experience.rooms.pop(); // tunnel no longer a room
         const { warnings: w2 } = composeExperience(experience, visibleNonRoom, base());
         assert.equal(w2.filter((x) => x.includes('tunnel')).length, 1);
+    });
+});
+
+describe('exportWarnings', () => {
+    const roomed = () => {
+        const experience = emptyExperience();
+        experience.rooms.push({ layer: 1, id: 'hall', doors: [] });
+        experience.rooms.push({ layer: 2, id: 'tunnel', doors: [] });
+        return experience;
+    };
+
+    it('is what composeExperience reports, so the dialog can show it before export', () => {
+        const experience = roomed();
+        experience.rooms.pop();
+        assert.deepEqual(exportWarnings(experience, layers()), composeExperience(experience, layers(), base()).warnings);
+    });
+
+    it('warns when a hidden non-room layer has content in room mode', () => {
+        const experience = roomed();
+        experience.annotations.push({ ...annotation(3), id: 'a9' });
+        const warnings = exportWarnings(experience, layers());
+        assert.equal(warnings.length, 1);
+        assert.match(warnings[0], /attic/);
+    });
+
+    it('says nothing about a hidden non-room layer without content', () => {
+        assert.deepEqual(exportWarnings(roomed(), layers()), []);
     });
 });
 
