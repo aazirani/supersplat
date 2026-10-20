@@ -33,6 +33,7 @@ import { PolygonSelection } from './tools/polygon-selection';
 import { RectSelection } from './tools/rect-selection';
 import { RotateTool } from './tools/rotate-tool';
 import { ScaleTool } from './tools/scale-tool';
+import { ScreenCornersTool } from './tools/screen-corners-tool';
 import { SphereBrushSelection } from './tools/sphere-brush-selection';
 import { SphereSelection } from './tools/sphere-selection';
 import { ToolManager } from './tools/tool-manager';
@@ -269,6 +270,7 @@ const main = async () => {
     toolManager.register('scale', new ScaleTool(events, scene));
     toolManager.register('measure', new MeasureTool(events, scene, editorUI.canvasContainer, editorUI.annotationContainer.dom));
     toolManager.register('annotationPlace', new AnnotationPlaceTool(events, scene, editorUI.canvasContainer));
+    toolManager.register('screenCorners', new ScreenCornersTool(events, scene, editorUI.canvasContainer));
     toolManager.register('orient', new OrientTool(events, scene, editorUI.toolsContainer.dom, editorUI.canvasContainer, editorUI.annotationContainer.dom));
 
     const boundDimensionsOverlay = new BoundDimensionsOverlay(events, scene, editorUI.canvasContainer, editorUI.annotationContainer.dom);
