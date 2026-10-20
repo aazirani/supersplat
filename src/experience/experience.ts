@@ -113,6 +113,8 @@ const registerExperienceEvents = (events: Events, scene: Scene) => {
         selection = null;
         changed();
     });
+    // the ui is built before the store; let it read the store now
+    changed();
 };
 
 export { registerExperienceEvents, type ExperienceSelection };

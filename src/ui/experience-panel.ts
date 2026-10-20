@@ -100,7 +100,7 @@ class ExperiencePanel extends Container {
         const annotationFields = new Container({ class: 'experience-fields', hidden: true });
 
         const titleInput = new TextInput({ class: 'settings-panel-row-input', placeholder: '' });
-        const textInput = new TextAreaInput({ class: 'text-area experience-text' });
+        const textInput = new TextAreaInput({ class: ['text-area', 'experience-text'] });
 
         const titleRow = row();
         titleRow.append(rowLabel('panel.experience.title'));
@@ -109,7 +109,7 @@ class ExperiencePanel extends Container {
         const textLabelRow = row();
         textLabelRow.append(rowLabel('panel.experience.text'));
 
-        const linksHint = new Label({ class: 'settings-panel-row-label experience-hint' });
+        const linksHint = new Label({ class: ['settings-panel-row-label', 'experience-hint'] });
         i18n.bindText(linksHint, 'panel.experience.links-hint');
 
         const setCameraButton = new Button({ class: 'experience-button' });
@@ -286,7 +286,7 @@ class ExperiencePanel extends Container {
 
         const screenFields = new Container({ class: 'experience-fields', hidden: true });
 
-        const sizeLabel = new Label({ class: 'settings-panel-row-label experience-size' });
+        const sizeLabel = new Label({ class: ['settings-panel-row-label', 'experience-size'] });
         const sizeRow = row();
         sizeRow.append(rowLabel('panel.experience.size'));
         sizeRow.append(sizeLabel);
@@ -550,7 +550,7 @@ class ExperiencePanel extends Container {
         // ------------------------------------------------------------------ rooms
 
         const roomsList = new Container({
-            class: 'experience-list experience-rooms-list'
+            class: ['experience-list', 'experience-rooms-list']
         });
 
         // the room whose doors are shown (a panel-local selection: rooms are layers,
@@ -633,7 +633,7 @@ class ExperiencePanel extends Container {
         const setArrivalButton = new Button({ class: 'experience-button' });
         i18n.bindText(setArrivalButton, 'panel.experience.set-arrival');
 
-        const arrivalStatus = new Label({ class: 'settings-panel-row-label experience-hint' });
+        const arrivalStatus = new Label({ class: ['settings-panel-row-label', 'experience-hint'] });
 
         doorFields.append(labeledRow('panel.experience.destination', destinationSelect));
         doorFields.append(labeledRow('panel.experience.label', doorLabelInput));
@@ -860,7 +860,7 @@ class ExperiencePanel extends Container {
 
             for (const layer of layers) {
                 const room = experience.rooms.find(r => r.layer === layer.uid);
-                const listRow = new Container({ class: 'experience-list-row experience-room-row' });
+                const listRow = new Container({ class: ['experience-list-row', 'experience-room-row'] });
                 if (roomSelection.uid === layer.uid) {
                     listRow.class.add('selected');
                 }
@@ -880,7 +880,7 @@ class ExperiencePanel extends Container {
                 });
 
                 // the room id, editable when the layer is a room
-                const idInput = new TextInput({ class: 'settings-panel-row-input experience-room-id', enabled: !!room });
+                const idInput = new TextInput({ class: ['settings-panel-row-input', 'experience-room-id'], enabled: !!room });
                 idInput.value = room?.id ?? slugify(layer.name);
                 let idInvalid: Label = null;
                 idInput.on('change', () => {
@@ -933,7 +933,7 @@ class ExperiencePanel extends Container {
                 roomsList.append(listRow);
 
                 if (room) {
-                    idInvalid = new Label({ class: 'settings-panel-row-label experience-bad-id', hidden: true });
+                    idInvalid = new Label({ class: ['settings-panel-row-label', 'experience-bad-id'], hidden: true });
                     i18n.bindText(idInvalid, 'panel.experience.bad-id');
                     roomsList.append(idInvalid);
                 }
@@ -1045,7 +1045,8 @@ class ExperiencePanel extends Container {
             }
         });
 
-        rebuild();
+        // the first build waits for the store's first experience.changed: the editor's ui is
+        // made before the scene the store needs
     }
 }
 
