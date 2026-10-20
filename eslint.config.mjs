@@ -38,6 +38,14 @@ export default [
             'require-atomic-updates': 'off'
         }
     }, {
+        // The experience's pure modules are run unbundled by node --test, so their relative
+        // imports carry the .ts extension (rewriteRelativeImportExtensions rewrites them for
+        // the bundle).
+        files: ['src/experience/**/*.ts'],
+        rules: {
+            'import/extensions': ['error', 'ignorePackages', { '.ts': 'always' }]
+        }
+    }, {
         files: ['**/*.mjs'],
         languageOptions: {
             globals: {
