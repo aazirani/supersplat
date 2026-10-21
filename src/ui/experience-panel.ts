@@ -918,8 +918,12 @@ class ExperiencePanel extends Container {
                 listRow.append(idInput);
                 listRow.append(firstToggle);
 
+                // a click on a control edits the store, which rebuilds this list and
+                // destroys the controls before the click reaches the row, so keep
+                // their nodes rather than reading .dom then
+                const controlDoms = [isRoomToggle.dom, idInput.dom, firstToggle.dom];
                 listRow.dom.addEventListener('click', (e) => {
-                    if (e.target instanceof Node && (isRoomToggle.dom.contains(e.target) || idInput.dom.contains(e.target) || firstToggle.dom.contains(e.target))) {
+                    if (e.target instanceof Node && controlDoms.some(dom => dom.contains(e.target as Node))) {
                         return;
                     }
                     if (roomSelection.uid !== layer.uid) {
