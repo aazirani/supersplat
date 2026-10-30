@@ -20,7 +20,9 @@
         "develop": "cross-env BUILD_TYPE=debug concurrently --kill-others \"npm run watch\" \"npm run serve\"",
         "develop:auto-launch": "concurrently --kill-others \"xdg-open 'http://localhost:3000/'\" \"npm run watch\" \"npm run serve\"",
         "lint": "eslint src",
-        "lint:locales": "node scripts/check-locales.mjs"
+        "lint:locales": "node scripts/check-locales.mjs",
+        "type:check": "tsc --noEmit",
+        "test": "node --test \"test/*.test.mjs\""
     },
     "engines": {
         "node": ">=20.19.0"
@@ -28,6 +30,7 @@
     "devDependencies": {
         "@playcanvas/eslint-config": "2.1.0",
         "@playcanvas/splat-transform": "3.9.0",
+        "@playcanvas/supersplat-viewer": "git+https://github.com/aazirani/supersplat-viewer.git#9f1bd626dbd4a53cab3e77f61eb62d5648e2d421",
         "@playcanvas/pcui": "6.1.4",
         "@rollup/plugin-alias": "6.0.0",
         "@rollup/plugin-image": "3.0.3",

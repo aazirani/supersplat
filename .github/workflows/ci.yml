@@ -68,3 +68,9 @@ jobs:
 
     - name: Lint locales
       run: npm run lint:locales
+
+    - name: Type check
+      run: npm run type:check
+
+    - name: Test
+      run: npm test

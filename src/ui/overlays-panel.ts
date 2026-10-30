@@ -236,6 +236,26 @@ class OverlaysPanel extends Container {
         showCameraInfoRow.append(showCameraInfoLabel);
         showCameraInfoRow.append(showCameraInfoToggle);
 
+        // experience overlay
+
+        const experienceRow = new Container({
+            class: 'settings-panel-row'
+        });
+
+        const experienceLabel = new Label({
+            class: 'settings-panel-row-label'
+        });
+        i18n.bindText(experienceLabel, 'panel.overlays.experience');
+
+        const experienceToggle = new BooleanInput({
+            type: 'toggle',
+            class: 'settings-panel-row-toggle',
+            value: true
+        });
+
+        experienceRow.append(experienceLabel);
+        experienceRow.append(experienceToggle);
+
         // frame timings overlay
 
         const perfOverlayRow = new Container({
@@ -281,6 +301,7 @@ class OverlaysPanel extends Container {
         rowToggles(showBoundDimensionsRow, showBoundDimensionsToggle);
         rowToggles(showCameraPosesRow, showCameraPosesToggle);
         rowToggles(showCameraInfoRow, showCameraInfoToggle);
+        rowToggles(experienceRow, experienceToggle);
         rowToggles(perfOverlayRow, perfOverlayToggle);
         rowToggles(overdrawRow, overdrawToggle);
 
@@ -292,6 +313,7 @@ class OverlaysPanel extends Container {
         this.append(showBoundDimensionsRow);
         this.append(showCameraPosesRow);
         this.append(showCameraInfoRow);
+        this.append(experienceRow);
         this.append(sectionHeader('panel.overlays.section-diagnostics'));
         this.append(perfOverlayRow);
         this.append(overdrawRow);
@@ -313,6 +335,7 @@ class OverlaysPanel extends Container {
             showBoundDimensionsToggle.value = events.invoke('camera.boundDimensions');
             showCameraPosesToggle.value = events.invoke('camera.showPoses');
             showCameraInfoToggle.value = events.invoke('camera.showInfo');
+            experienceToggle.value = events.invoke('experience.showOverlay');
             perfOverlayToggle.value = events.invoke('view.perfOverlay');
             overdrawToggle.value = events.invoke('view.overdraw');
         };
@@ -348,6 +371,12 @@ class OverlaysPanel extends Container {
         });
 
         events.on('appearancePanel.visible', (visible: boolean) => {
+            if (visible) {
+                setVisible(false);
+            }
+        });
+
+        events.on('experiencePanel.visible', (visible: boolean) => {
             if (visible) {
                 setVisible(false);
             }
@@ -411,6 +440,16 @@ class OverlaysPanel extends Container {
 
         showCameraInfoToggle.on('change', () => {
             events.fire('camera.setShowInfo', showCameraInfoToggle.value);
+        });
+
+        // experience overlay
+
+        events.on('experience.showOverlay', (visible: boolean) => {
+            experienceToggle.value = visible;
+        });
+
+        experienceToggle.on('change', () => {
+            events.fire('experience.setShowOverlay', experienceToggle.value);
         });
 
         // frame timings overlay

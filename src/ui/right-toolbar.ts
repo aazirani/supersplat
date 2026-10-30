@@ -6,6 +6,7 @@ import { i18n } from './localization';
 import appearanceSvg from './svg/appearance.svg';
 import cameraFrameSelectionSvg from './svg/camera-frame-selection.svg';
 import cameraResetSvg from './svg/camera-reset.svg';
+import experienceSvg from './svg/experience.svg';
 import flyCameraSvg from './svg/fly-camera.svg';
 import orbitCameraSvg from './svg/orbit-camera.svg';
 import overlaysSvg from './svg/overlays.svg';
@@ -59,6 +60,11 @@ class RightToolbar extends Container {
             class: 'right-toolbar-toggle'
         });
 
+        const experience = new Button({
+            id: 'right-toolbar-experience',
+            class: 'right-toolbar-toggle'
+        });
+
         const settings = new Button({
             id: 'right-toolbar-settings',
             class: 'right-toolbar-toggle',
@@ -71,11 +77,13 @@ class RightToolbar extends Container {
         cameraFrameSelection.dom.appendChild(createSvg(cameraFrameSelectionSvg));
         cameraReset.dom.appendChild(createSvg(cameraResetSvg));
         overlays.dom.appendChild(createSvg(overlaysSvg));
+        experience.dom.appendChild(createSvg(experienceSvg));
 
         // icon-only buttons: keep accessible names in sync with the language
         const buttonLabels: [Button, string][] = [
             [appearance, 'panel.appearance'],
             [overlays, 'panel.overlays'],
+            [experience, 'panel.experience'],
             [orbitMode, 'tooltip.right-toolbar.orbit-camera'],
             [flyMode, 'tooltip.right-toolbar.fly-camera'],
             [cameraFrameSelection, 'tooltip.right-toolbar.frame-selection'],
@@ -88,6 +96,7 @@ class RightToolbar extends Container {
 
         this.append(appearance);
         this.append(overlays);
+        this.append(experience);
         this.append(new Element({ class: 'right-toolbar-separator' }));
         this.append(orbitMode);
         this.append(flyMode);
@@ -116,6 +125,7 @@ class RightToolbar extends Container {
         tooltips.register(cameraFrameSelection, tooltip('tooltip.right-toolbar.frame-selection', 'camera.focus'), 'left');
         tooltips.register(cameraReset, tooltip('tooltip.right-toolbar.reset-camera', 'camera.reset'), 'left');
         tooltips.register(overlays, tooltip('panel.overlays'), 'left');
+        tooltips.register(experience, tooltip('panel.experience'), 'left');
         tooltips.register(settings, tooltip('panel.settings'), 'left');
 
         // add event handlers
@@ -126,6 +136,7 @@ class RightToolbar extends Container {
         cameraFrameSelection.on('click', () => events.fire('camera.focus'));
         cameraReset.on('click', () => events.fire('camera.reset'));
         overlays.on('click', () => events.fire('overlaysPanel.toggleVisible'));
+        experience.on('click', () => events.fire('experiencePanel.toggleVisible'));
         settings.on('click', () => events.fire('settingsPanel.toggleVisible'));
 
         events.on('appearancePanel.visible', (visible: boolean) => {
@@ -139,6 +150,10 @@ class RightToolbar extends Container {
 
         events.on('overlaysPanel.visible', (visible: boolean) => {
             overlays.class[visible ? 'add' : 'remove']('active');
+        });
+
+        events.on('experiencePanel.visible', (visible: boolean) => {
+            experience.class[visible ? 'add' : 'remove']('active');
         });
 
         events.on('settingsPanel.visible', (visible: boolean) => {

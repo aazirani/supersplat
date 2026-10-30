@@ -3,6 +3,7 @@ import { Color, Mat4, Quat, Vec3 } from 'playcanvas';
 import { AnimTrack } from './anim-track';
 import { BoxShape } from './box-shape';
 import { composeGrades, createGradeTerms, type GradeTerms } from './color-grade';
+import type { Experience } from './experience/types';
 import type { RemovedInstances } from './gaussian-instances';
 import { IndexRanges, sortedPredicate } from './index-ranges';
 import { Pivot } from './pivot';
@@ -570,6 +571,31 @@ class AnimTrackEditOp {
     }
 }
 
+// Snapshot-based undo/redo for experience edits. The snapshots are structuredClones of the
+// store; `restore` (supplied by the store) assigns a clone of the snapshot and fires
+// 'experience.changed'.
+class ExperienceEditOp {
+    name: string;
+    before: Experience;
+    after: Experience;
+    restore: (snapshot: Experience) => void;
+
+    constructor(name: string, before: Experience, after: Experience, restore: (snapshot: Experience) => void) {
+        this.name = name;
+        this.before = before;
+        this.after = after;
+        this.restore = restore;
+    }
+
+    do() {
+        this.restore(this.after);
+    }
+
+    undo() {
+        this.restore(this.before);
+    }
+}
+
 class MultiOp {
     name = 'multiOp';
     ops: EditOp[];
@@ -654,6 +680,7 @@ export {
     ShapeTransformOp,
     ShapeTransformState,
     AnimTrackEditOp,
+    ExperienceEditOp,
     MultiOp,
     AddSplatOp,
     SplatRenameOp

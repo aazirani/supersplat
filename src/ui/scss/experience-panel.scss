@@ -1,0 +1,134 @@
+@use 'colors.scss' as *;
+
+// the Experience panel's own bits; the shell comes from .options-panel in settings-panel.scss
+.options-panel#experience-panel {
+    // taller than most windows with a screen and a room selected: scroll inside it
+    // (the shared shell lets dropdowns escape instead, which this panel gives up)
+    max-height: calc(100% - 32px);
+    overflow-x: hidden;
+    overflow-y: auto;
+
+    & > * {
+        flex-shrink: 0;
+    }
+
+    // rows sit inside .experience-fields too, which the shell's direct-child row rules miss
+    .settings-panel-row {
+        display: flex;
+        flex-direction: row;
+        flex-shrink: 0;
+        align-items: center;
+        gap: 4px;
+        padding: 2px 10px;
+        min-height: 28px;
+
+        & > .settings-panel-row-label {
+            flex: 1 1 auto;
+            min-width: 0;
+            margin: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        & > .settings-panel-row-input,
+        & > .pcui-select-input,
+        & > .pcui-vector-input {
+            flex: 0 0 180px;
+            width: 180px;
+            margin: 0;
+        }
+
+        & > .pcui-button {
+            flex: 1 1 0;
+            min-width: 0;
+            margin: 0;
+        }
+    }
+
+    .experience-list {
+        display: flex;
+        flex-direction: column;
+        margin: 2px 8px;
+        max-height: 160px;
+        overflow-y: auto;
+
+        .experience-list-row {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            gap: 4px;
+            height: 24px;
+            padding: 0 6px;
+            cursor: pointer;
+
+            &:hover {
+                background-color: rgba(255, 255, 255, 0.05);
+            }
+
+            &.selected {
+                background-color: $bcg-dark;
+            }
+
+            .experience-list-row-warning {
+                color: $error;
+            }
+
+            .experience-list-row-label {
+                flex: 1;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+
+            // a room row: layer name, room toggle, id, first-room toggle
+            &.experience-room-row {
+                .experience-list-row-label {
+                    min-width: 60px;
+                }
+
+                .experience-room-id {
+                    flex: 0 0 120px;
+                    width: 120px;
+                    margin: 0;
+                }
+            }
+
+            .experience-list-row-layer {
+                color: $text-secondary;
+                font-size: 11px;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+        }
+    }
+
+    .experience-fields {
+        flex-direction: column;
+        flex-shrink: 0;
+
+        // pcui hides with .pcui-hidden; an unconditional display here would override it
+        &:not(.pcui-hidden) {
+            display: flex;
+        }
+
+        .experience-text {
+            margin: 0 10px;
+            min-height: 56px;
+            font-size: 11px;
+        }
+
+        .experience-hint {
+            padding: 2px 10px 6px;
+            color: $text-secondary;
+            font-size: 10px;
+        }
+    }
+
+    .experience-button {
+        flex-grow: 1;
+        margin: 2px;
+        min-width: 0;
+    }
+}

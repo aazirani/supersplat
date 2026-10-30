@@ -143,6 +143,9 @@ const registerDocEvents = (scene: Scene, events: Events) => {
             docSource.close();
             const document = JSON.parse(new TextDecoder().decode(docData));
 
+            // the layers in document.splats order, for the experience's layer indices
+            const loadedSplats: Splat[] = [];
+
             if ((document.version ?? 0) >= 1) {
                 // v1: the static tier is stored once per resource, and each layer
                 // brings its own instance list and palettes. Layers sharing a
@@ -172,6 +175,7 @@ const registerDocEvents = (scene: Scene, events: Events) => {
 
                     await scene.add(splat);
                     splat.docDeserialize(splatSettings);
+                    loadedSplats.push(splat);
                 }
             } else {
                 // v0: one baked PLY per layer, no instance list
@@ -187,6 +191,7 @@ const registerDocEvents = (scene: Scene, events: Events) => {
                     await scene.add(splat);
 
                     splat.docDeserialize(splatSettings);
+                    loadedSplats.push(splat);
                 }
             }
 
@@ -198,6 +203,28 @@ const registerDocEvents = (scene: Scene, events: Events) => {
             if (scene.bound === null) {
                 console.error('unexpected missing scene bound');
             }
+
+            // the experience's embedded media, keyed by its path in the archive; a
+            // missing entry is skipped and the deserializer leaves the source null
+            const media = new Map<string, Blob>();
+            if (document.experience) {
+                const paths = new Set<string>();
+                for (const screen of document.experience.screens ?? []) {
+                    const path = screen?.source?.path;
+                    if (typeof path === 'string') paths.add(path);
+                }
+                for (const path of paths) {
+                    try {
+                        const source = await zipFs.createSource(path);
+                        const bytes = await source.read().readAll();
+                        source.close();
+                        media.set(path, new Blob([bytes as BlobPart]));
+                    } catch {
+                        // the media file is absent; the screen loads without a source
+                    }
+                }
+            }
+            events.invoke('docDeserialize.experience', document.experience, loadedSplats, media);
 
             events.invoke('docDeserialize.timeline', document.timeline);
             events.invoke('docDeserialize.poseSets', document.poseSets, document.camera?.fov);
@@ -293,6 +320,9 @@ const registerDocEvents = (scene: Scene, events: Events) => {
             const splats = events.invoke('scene.allSplats') as Splat[];
             const groups = groupByResource(splats, options.compact ?? true);
 
+            // the authored experience, serialized against the splats' document order
+            const experience = events.invoke('docSerialize.experience', splats);
+
             // layer -> the resource file it reads from, and its remapped records
             const layerInfo = new Map<Splat, { resource: number, records: ArrayBuffer }>();
             groups.forEach((group, resourceIndex) => {
@@ -318,7 +348,8 @@ const registerDocEvents = (scene: Scene, events: Events) => {
                     ...splat.docSerialize(),
                     resource: layerInfo.get(splat).resource,
                     instances: `instances_${i}.bin`
-                }))
+                })),
+                experience: experience.doc
             };
 
             // Create browser filesystem and zip filesystem
@@ -340,6 +371,13 @@ const registerDocEvents = (scene: Scene, events: Events) => {
             for (let i = 0; i < splats.length; ++i) {
                 const writer = await zipFs.createWriter(`instances_${i}.bin`);
                 await writer.write(new Uint8Array(layerInfo.get(splats[i]).records));
+                await writer.close();
+            }
+
+            // Write the experience's embedded media files
+            for (const entry of experience.media) {
+                const writer = await zipFs.createWriter(entry.path);
+                await writer.write(new Uint8Array(await entry.blob.arrayBuffer()));
                 await writer.close();
             }
 

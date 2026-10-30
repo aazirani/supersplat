@@ -3,7 +3,7 @@ import { Events } from './events';
 import type { WriteTarget } from './io';
 import { AnimTrack, defaultPostEffectSettings, ExperienceSettings, SerializeSettings, ViewerExportSettings } from './splat-serialize';
 
-type ExportType = 'ply' | 'splat' | 'sog' | 'spz' | 'viewer';
+type ExportType = 'ply' | 'splat' | 'sog' | 'spz' | 'viewer' | 'experience';
 
 // The export dialog's choices. Everything else in SceneExportOptions is read
 // from the scene when the export runs, so repeating an export with the same
@@ -142,6 +142,11 @@ const buildExportOptions = (events: Events, exportType: ExportType, choices: Exp
             break;
         case 'viewer':
             options.viewerExportSettings = buildViewerSettings(events, choices);
+            break;
+        case 'experience':
+            // the experience is always a zip; its look comes from the same viewer choices
+            options.viewerExportSettings = buildViewerSettings(events, { ...choices, viewerType: 'zip' });
+            options.sogIterations = choices.sogIterations;
             break;
     }
 

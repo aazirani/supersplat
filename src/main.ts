@@ -7,6 +7,8 @@ import { registerDocEvents } from './doc';
 import { EditHistory } from './edit-history';
 import { registerEditorEvents } from './editor';
 import { Events } from './events';
+import { registerExperienceEvents } from './experience/experience';
+import { ExperienceOverlay } from './experience/experience-overlay';
 import { initFileHandler } from './file-handler';
 import { registerIframeApi } from './iframe-api';
 import { registerPreferences } from './preferences';
@@ -18,8 +20,10 @@ import { registerSelectionEvents } from './selection';
 import { registerSequenceEvents } from './sequence';
 import { ShortcutManager } from './shortcut-manager';
 import { registerTimelineEvents } from './timeline';
+import { AnnotationPlaceTool } from './tools/annotation-place-tool';
 import { BoxSelection } from './tools/box-selection';
 import { BrushSelection } from './tools/brush-selection';
+import { DoorBoxTool } from './tools/door-box-tool';
 import { EyedropperSelection } from './tools/eyedropper-selection';
 import { FloodSelection } from './tools/flood-selection';
 import { LassoSelection } from './tools/lasso-selection';
@@ -30,6 +34,7 @@ import { PolygonSelection } from './tools/polygon-selection';
 import { RectSelection } from './tools/rect-selection';
 import { RotateTool } from './tools/rotate-tool';
 import { ScaleTool } from './tools/scale-tool';
+import { ScreenCornersTool } from './tools/screen-corners-tool';
 import { SphereBrushSelection } from './tools/sphere-brush-selection';
 import { SphereSelection } from './tools/sphere-selection';
 import { ToolManager } from './tools/tool-manager';
@@ -265,9 +270,15 @@ const main = async () => {
     toolManager.register('rotate', new RotateTool(events, scene));
     toolManager.register('scale', new ScaleTool(events, scene));
     toolManager.register('measure', new MeasureTool(events, scene, editorUI.canvasContainer, editorUI.annotationContainer.dom));
+    toolManager.register('annotationPlace', new AnnotationPlaceTool(events, scene, editorUI.canvasContainer));
+    toolManager.register('screenCorners', new ScreenCornersTool(events, scene, editorUI.canvasContainer));
+    toolManager.register('doorBox', new DoorBoxTool(events, scene));
     toolManager.register('orient', new OrientTool(events, scene, editorUI.toolsContainer.dom, editorUI.canvasContainer, editorUI.annotationContainer.dom));
 
     const boundDimensionsOverlay = new BoundDimensionsOverlay(events, scene, editorUI.canvasContainer, editorUI.annotationContainer.dom);
+
+    // the authored experience's viewport overlay
+    const experienceOverlay = new ExperienceOverlay(events, scene);
 
     editorUI.toolsContainer.dom.appendChild(maskCanvas);
 
@@ -281,6 +292,7 @@ const main = async () => {
     registerSelectionEvents(events, scene);
     registerSequenceEvents(events, scene);
     registerDocEvents(scene, events);
+    registerExperienceEvents(events, scene);
     registerRenderEvents(scene, events);
     initFileHandler(scene, events, editorUI.appContainer.dom);
 

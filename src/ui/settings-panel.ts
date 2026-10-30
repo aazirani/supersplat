@@ -301,6 +301,12 @@ class SettingsPanel extends Container {
             }
         });
 
+        events.on('experiencePanel.visible', (visible: boolean) => {
+            if (visible) {
+                setVisible(false);
+            }
+        });
+
         // sh bands
 
         events.on('view.bands', (bands: number) => {
